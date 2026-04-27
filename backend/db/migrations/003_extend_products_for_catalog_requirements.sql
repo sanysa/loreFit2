@@ -60,7 +60,7 @@ VALUES
   (
     'BCAA Amino Complex',
     'nutrition',
-    'Комплекс аминокислот для поддержки выносливости и восстановления.',
+    'Комплекс аминокислот для поддержки выносливости и восстановления.',,
     12800,
     16,
     ARRAY['https://images.unsplash.com/photo-1612532275214-e4ca76d0e4d1?auto=format&fit=crop&w=1200&q=80']::TEXT[],

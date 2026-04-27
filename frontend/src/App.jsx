@@ -4,9 +4,25 @@ import './App.css'
 function App() {
   const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001'
   const paymentUrl = 'https://pay.kaspi.kz/pay/klrytula'
+  const reviews = [
+    {
+      author: 'Александр К.',
+      text: 'Отличный магазин, быстрая доставка и качественные товары. Рекомендую!',
+    },
+    {
+      author: 'Мария П.',
+      text: 'Всё просто супер! Товары пришли в отличном состоянии, цены адекватные.',
+    },
+    {
+      author: 'Иван С.',
+      text: 'Покупал несколько раз, всегда доволен качеством и обслуживанием.',
+    },
+    {
+      author: 'Елена М.',
+      text: 'Отличный выбор спортивных товаров. Доставка очень быстрая!',
+    },
+  ]
   const [currentPage, setCurrentPage] = useState('home')
-  const [selectedDate, setSelectedDate] = useState('')
-  const [selectedTime, setSelectedTime] = useState('09:00')
   const [authMode, setAuthMode] = useState('login')
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState('')
@@ -40,7 +56,6 @@ function App() {
   const [lastOrder, setLastOrder] = useState(null)
   const [activeOrders, setActiveOrders] = useState([])
   const [historyOrders, setHistoryOrders] = useState([])
-  const [historyPrograms, setHistoryPrograms] = useState([])
   const [ordersLoading, setOrdersLoading] = useState(false)
   const [ordersError, setOrdersError] = useState('')
   const [accountTab, setAccountTab] = useState('profile')
@@ -76,65 +91,13 @@ function App() {
     isActive: true,
   })
 
-  const categories = [
-    {
-      title: 'Силовые тренировки',
-      description: 'Программы для набора силы, выносливости и построения рельефа.',
-      level: 'Для начинающих и продвинутых',
-    },
-    {
-      title: 'Йога и мобильность',
-      description: 'Практики для гибкости, снятия стресса и восстановления тела.',
-      level: 'Мягкий и средний темп',
-    },
-    {
-      title: 'Кардио и HIIT',
-      description: 'Интенсивные онлайн‑занятия для жиросжигания и энергии.',
-      level: 'Высокая интенсивность',
-    },
-    {
-      title: 'Тренировки дома',
-      description: 'Курсы без зала и сложного инвентаря, с понятными шагами.',
-      level: 'Формат 20–40 минут',
-    },
-  ]
 
-  const trainers = [
-    {
-      name: 'Каринэ',
-      specialty:
-        'Тестовое описание: персональный онлайн-тренер, помогает выстроить регулярные тренировки, поддерживает мотивацию и адаптирует нагрузку под ваш уровень.',
-      stats: 'Тестовый профиль тренера',
-    },
-  ]
 
-  const steps = [
-    {
-      title: 'Выбери цель',
-      text: 'Похудение, набор формы, здоровье спины или поддержка тонуса.',
-    },
-    {
-      title: 'Найди тренера',
-      text: 'Сравни рейтинги, стили занятий и длительность программ.',
-    },
-    {
-      title: 'Тренируйся онлайн',
-      text: 'Смотри уроки в удобное время и отслеживай свой прогресс.',
-    },
-  ]
 
-  const reviews = [
-    {
-      text: 'За 2 месяца вернула форму без спортзала. Уроки короткие и очень понятные.',
-      author: 'Айгерим, 29 лет',
-    },
-    {
-      text: 'Нашёл тренера под свой график: тренируюсь утром дома, результат уже через 3 недели.',
-      author: 'Рустам, 34 года',
-    },
-  ]
 
-  const timeSlots = ['07:00', '09:00', '12:00', '15:00', '18:00', '20:00']
+
+
+
 
   const cartTotalKzt = cartItems.reduce((sum, item) => sum + item.priceKzt * item.quantity, 0)
   const cartItemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0)
@@ -447,7 +410,6 @@ function App() {
 
       setActiveOrders(activeData.orders || [])
       setHistoryOrders(historyData.orders || [])
-      setHistoryPrograms(historyData.programPurchases || [])
     } catch (error) {
       setOrdersError('Не удалось загрузить заказы. Попробуйте позже.')
     } finally {
@@ -655,33 +617,7 @@ function App() {
     }
   }
 
-  const buyOnlineProgram = async (programTitle) => {
-    const token = localStorage.getItem('lorefit_token')
 
-    if (!token || !authUser) {
-      setCurrentPage('auth')
-      return
-    }
-
-    try {
-      await fetch(`${apiBaseUrl}/api/program-purchases`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          programTitle,
-          amountKzt: 7900,
-          programUrl: `/programs/${encodeURIComponent(programTitle.toLowerCase())}`,
-        }),
-      })
-    } catch (error) {
-      return
-    }
-
-    window.location.assign(paymentUrl)
-  }
 
   const deleteAccount = async () => {
     const token = localStorage.getItem('lorefit_token')
@@ -825,7 +761,7 @@ function App() {
             <h1>{authMode === 'register' ? 'Регистрация' : 'Вход'}</h1>
             <p className="booking-text">
               {authMode === 'register'
-                ? 'Создай аккаунт для доступа к тренировкам и бронированию.'
+                ? 'Создай аккаунт для доступа к магазину и заказам.'
                 : 'Войди в аккаунт по email и паролю.'}
             </p>
 
@@ -888,7 +824,7 @@ function App() {
                   <input
                     className="date-input"
                     id="firstName"
-                    name="firstName"
+                    name="Имя"
                     type="text"
                     value={authForm.firstName}
                     onChange={updateAuthForm}
@@ -901,7 +837,7 @@ function App() {
                   <input
                     className="date-input"
                     id="lastName"
-                    name="lastName"
+                    name="Фамилия"
                     type="text"
                     value={authForm.lastName}
                     onChange={updateAuthForm}
@@ -914,7 +850,7 @@ function App() {
                   <input
                     className="date-input"
                     id="country"
-                    name="country"
+                    name="Страна"
                     type="text"
                     value={authForm.country}
                     onChange={updateAuthForm}
@@ -927,7 +863,7 @@ function App() {
                   <input
                     className="date-input"
                     id="city"
-                    name="city"
+                    name="Город"
                     type="text"
                     value={authForm.city}
                     onChange={updateAuthForm}
@@ -953,90 +889,7 @@ function App() {
     )
   }
 
-  if (currentPage === 'booking') {
-    return (
-      <div className="booking-page">
-        <div className="booking-shell container">
-          <button
-            className="back-link"
-            type="button"
-            onClick={() => setCurrentPage('home')}
-          >
-            ← Назад на главную
-          </button>
 
-          <div className="booking-layout">
-            <section className="booking-card">
-              <p className="badge">Онлайн бронирование</p>
-              <h1>Забронируй тренировку и переходи к оплате</h1>
-              <p className="booking-text">
-                Выбери удобную дату и время. После подтверждения ты сразу перейдёшь
-                к безопасной оплате занятия.
-              </p>
-
-              <label className="field-label" htmlFor="booking-date">
-                Дата тренировки
-              </label>
-              <input
-                className="date-input"
-                id="booking-date"
-                type="date"
-                value={selectedDate}
-                onChange={(event) => setSelectedDate(event.target.value)}
-                min={new Date().toISOString().split('T')[0]}
-              />
-
-              <p className="field-label">Время</p>
-              <div className="slots">
-                {timeSlots.map((slot) => (
-                  <button
-                    key={slot}
-                    type="button"
-                    className={slot === selectedTime ? 'slot active' : 'slot'}
-                    onClick={() => setSelectedTime(slot)}
-                  >
-                    {slot}
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            <aside className="summary-card">
-              <h3>Детали бронирования</h3>
-              <div className="summary-row">
-                <span>Тренировка</span>
-                <strong>Функционал + кардио</strong>
-              </div>
-              <div className="summary-row">
-                <span>Дата</span>
-                <strong>{selectedDate || 'Не выбрана'}</strong>
-              </div>
-              <div className="summary-row">
-                <span>Время</span>
-                <strong>{selectedTime}</strong>
-              </div>
-              <div className="summary-row total">
-                <span>К оплате</span>
-                <strong>7 900 ₸</strong>
-              </div>
-
-              <button
-                className="primary pay-button"
-                type="button"
-                disabled={!selectedDate}
-                onClick={() => window.location.assign(paymentUrl)}
-              >
-                Оплатить тренировку
-              </button>
-              {!selectedDate && (
-                <p className="hint">Сначала выбери дату в календаре.</p>
-              )}
-            </aside>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   if (currentPage === 'shop') {
     const normalizedQuery = shopSearchQuery.trim().toLowerCase()
@@ -1588,19 +1441,7 @@ function App() {
                           </article>
                         ))}
 
-                        {historyPrograms.map((program) => (
-                          <article className="cart-item" key={`history-program-${program.id}`}>
-                            <div>
-                              <h3>{program.programTitle}</h3>
-                              <p>{new Date(program.createdAt).toLocaleString('ru-RU')}</p>
-                              <p>Статус: {program.status === 'paid' ? 'Оплачен' : 'Отменён'}</p>
-                              <a href={program.programUrl}>Смотреть программу</a>
-                            </div>
-                            <strong>{formatKzt(program.amountKzt)}</strong>
-                          </article>
-                        ))}
-
-                        {!ordersLoading && historyOrders.length === 0 && historyPrograms.length === 0 && (
+                        {!ordersLoading && historyOrders.length === 0 && (
                           <p className="booking-text">История покупок пока пуста.</p>
                         )}
                       </div>
@@ -1703,8 +1544,8 @@ function App() {
                             onChange={(event) => setAdminProductCategoryFilter(event.target.value)}
                           >
                             <option value="all">Все категории</option>
-                            <option value="equipment">Спортивный инвентарь</option>
-                            <option value="nutrition">Спортивное питание</option>
+                            <option value="equipment">Овощи</option>
+                            <option value="nutrition">Бытовая химия</option>
                           </select>
                         </div>
 
@@ -1941,8 +1782,8 @@ function App() {
                           value={adminProductForm.category}
                           onChange={updateAdminProductForm}
                         >
-                          <option value="equipment">Спортивный инвентарь</option>
-                          <option value="nutrition">Спортивное питание</option>
+                          <option value="equipment">Овощи</option>
+                          <option value="nutrition">Бытовая химия</option>
                         </select>
 
                         <label className="field-label" htmlFor="admin-description">
@@ -2086,11 +1927,11 @@ function App() {
         <nav className="nav container">
           <div className="brand">LoreFit</div>
           <div className="nav-links">
-            <a href="#catalog">Каталог</a>
-            <a href="#trainers">О тренере</a>
+            <a href="#products">Товары</a>
+            <a href="#about">О магазине</a>
             <a href="#reviews">Отзывы</a>
             <button className="nav-link-button" type="button" onClick={() => setCurrentPage('shop')}>
-              Товары
+              Магазин
             </button>
             {authUser && (
               <button
@@ -2145,15 +1986,14 @@ function App() {
 
         <div className="hero-content container">
           <div>
-            <p className="badge">Маркетплейс онлайн тренировок</p>
-            <h1>Тренируйся с персональным тренером, где и когда удобно</h1>
+            <p className="badge">Маркетплэйс продуктов и товаров</p>
+            <h1>Все необходимое для вашего дома в одном месте</h1>
             <p className="hero-text">
-              Сравнивай программы, выбирай формат и начинай занятия уже сегодня.
-              Все курсы, интенсивы и персональные планы в одном месте.
+              Широкий ассортимент овощей, фруктов и бытовой химии. Быстрая доставка и качественные товары для вашего дома.
             </p>
             <div className="hero-actions">
-              <button className="primary" onClick={() => setCurrentPage('booking')}>
-                Забронировать тренировку
+              <button className="primary" onClick={() => setCurrentPage('shop')}>
+                Перейти в магазин
               </button>
               <button className="secondary" onClick={() => setCurrentPage('shop')}>
                 Спортивные товары
@@ -2162,77 +2002,90 @@ function App() {
           </div>
 
           <div className="hero-card">
-            <p className="hero-card-title">Популярная программа</p>
-            <h3>21 день: сильное тело дома</h3>
-            <p>12 видеоуроков · чат с тренером · персональный план питания</p>
+            <p className="hero-card-title">Популярный товар</p>
+            <h3>Помидоры свежие</h3>
+            <p>Свежие помидоры с грядки, прямо доставленные вам домой.</p>
             <div className="hero-meta">
               <span>4.9 ★</span>
-              <span>1 240 участников</span>
+              <span>1 240 покупок</span>
             </div>
           </div>
         </div>
       </header>
 
       <main>
-        <section className="section container" id="catalog">
+        <section className="section container" id="products">
           <div className="section-head">
-            <h2>Категории тренировок</h2>
-            <p>Выбирай направление под свою цель и текущий уровень подготовки.</p>
+            <h2>Популярные товары</h2>
+            <p>Выбирайте из нашего ассортимента спортивного инвентаря и питания.</p>
           </div>
           <div className="grid cards-4">
-            {categories.map((item) => (
-              <article key={item.title} className="card-item">
-                <h3>{item.title}</h3>
-                <p>{item.description}</p>
-                <span>{item.level}</span>
+            {products.slice(0, 4).map((product) => (
+              <article key={product.id} className="card-item">
+                <h3>{product.name}</h3>
+                <p>{product.description}</p>
+                <span>{formatKzt(product.priceKzt)}</span>
                 <button
                   className="primary category-buy-button"
                   type="button"
-                  onClick={() => buyOnlineProgram(item.title)}
+                  onClick={() => openProductDetails(product.id)}
                 >
-                  Купить онлайн-программу
+                  Посмотреть товар
                 </button>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="section section-soft" id="trainers">
+        <section className="section section-soft" id="about">
           <div className="container">
             <div className="section-head">
-              <h2>Тренер платформы</h2>
-              <p>Профиль доступного тренера для онлайн-занятий.</p>
+              <h2>О нашем магазине</h2>
+              <p>Мы предлагаем качественные спортивные товары для вашего здоровья и фитнеса.</p>
             </div>
             <div className="grid cards-3">
-              {trainers.map((trainer) => (
-                <article key={trainer.name} className="trainer-card">
-                  <div className="avatar" aria-hidden="true">
-                    {trainer.name
-                      .split(' ')
-                      .map((part) => part[0])
-                      .join('')}
-                  </div>
-                  <h3>{trainer.name}</h3>
-                  <p>{trainer.specialty}</p>
-                  <span>{trainer.stats}</span>
-                </article>
-              ))}
+              <article className="trainer-card">
+                <div className="avatar" aria-hidden="true">🏆</div>
+                <h3>Качественные товары</h3>
+                <p>Только проверенные бренды и высокое качество.</p>
+                <span>100% гарантия</span>
+              </article>
+              <article className="trainer-card">
+                <div className="avatar" aria-hidden="true">🚚</div>
+                <h3>Быстрая доставка</h3>
+                <p>Доставка по всему Казахстану в кратчайшие сроки.</p>
+                <span>От 1 дня</span>
+              </article>
+              <article className="trainer-card">
+                <div className="avatar" aria-hidden="true">💪</div>
+                <h3>Для всех уровней</h3>
+                <p>Товары для начинающих и профессионалов.</p>
+                <span>Широкий ассортимент</span>
+              </article>
             </div>
           </div>
         </section>
 
         <section className="section container" id="how">
           <div className="section-head">
-            <h2>Как это работает</h2>
+            <h2>Как купить</h2>
           </div>
           <div className="grid cards-3 steps">
-            {steps.map((step, index) => (
-              <article key={step.title} className="step-card">
-                <div className="step-number">0{index + 1}</div>
-                <h3>{step.title}</h3>
-                <p>{step.text}</p>
-              </article>
-            ))}
+            <article className="step-card">
+              <div className="step-number">01</div>
+              <h3>Выберите товар</h3>
+              <p>Просмотрите наш каталог и добавьте товары в корзину.</p>
+            </article>
+            <article className="step-card">
+              <div className="step-number">02</div>
+              <h3>Оформите заказ</h3>
+              <p>Укажите адрес доставки и оплатите удобным способом.</p>
+            </article>
+            <article className="step-card">
+              <div className="step-number">03</div>
+              <h3>Получите товар</h3>
+              <p>Мы доставим ваш заказ быстро и качественно.</p>
+            </article>
           </div>
         </section>
 
@@ -2254,11 +2107,11 @@ function App() {
       <section className="cta">
         <div className="container cta-inner">
           <div>
-            <h2>Начни путь к своей форме уже сегодня</h2>
-            <p>Регистрация занимает меньше минуты. Первые тренировки доступны сразу.</p>
+            <h2>Начните покупки уже сегодня</h2>
+            <p>Зарегистрируйтесь и получите доступ к полному ассортименту товаров.</p>
           </div>
-          <button className="primary" onClick={() => setCurrentPage('booking')}>
-            Перейти к бронированию
+          <button className="primary" onClick={() => setCurrentPage('shop')}>
+            Перейти в магазин
           </button>
         </div>
       </section>

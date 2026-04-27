@@ -226,7 +226,7 @@ app.post("/api/admin/products", requireAdmin, async (req, res) => {
   if (
     !payload.name ||
     !payload.description ||
-    !["equipment", "nutrition"].includes(payload.category) ||
+    !["vegetables", "chemistry"].includes(payload.category) ||
     !Number.isFinite(payload.priceKzt) ||
     payload.priceKzt <= 0 ||
     !Number.isInteger(payload.stockQuantity) ||
