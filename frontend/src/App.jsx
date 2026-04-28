@@ -1,6 +1,102 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 
+const hiddenProductNames = [
+  'Смарт-бутылка 750 мл',
+  'Протеин Whey Core 900 г',
+  'BCAA Amino Complex',
+]
+const legacyVegetableNames = new Set([
+  'Помидоры свежие',
+  'Огурцы хрустящие',
+  'Морковь сладкая',
+  'Картофель белый',
+  'Капуста свежая',
+  'Лук репчатый',
+  'Чеснок свежий',
+  'Перец болгарский',
+])
+
+const productImageByName = {
+  'Помидоры свежие': 'https://images.unsplash.com/photo-1592924357228-85a36e2a32ca?auto=format&fit=crop&w=1200&q=80',
+  'Огурцы хрустящие': 'https://images.unsplash.com/photo-1569163139394-de4798aa62b3?auto=format&fit=crop&w=1200&q=80',
+  'Морковь сладкая': 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?auto=format&fit=crop&w=1200&q=80',
+  'Картофель белый': 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=1200&q=80',
+  'Капуста свежая': 'https://images.unsplash.com/photo-1553530666-ba953a5ad488?auto=format&fit=crop&w=1200&q=80',
+  'Лук репчатый': 'https://images.unsplash.com/photo-1518977956812-cd3dbadaaf31?auto=format&fit=crop&w=1200&q=80',
+  'Чеснок свежий': 'https://images.unsplash.com/photo-1608500218808-84753bdce5c7?auto=format&fit=crop&w=1200&q=80',
+  'Перец болгарский': 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=1200&q=80',
+  'Стиральный порошок 1 кг': 'https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?auto=format&fit=crop&w=1200&q=80',
+  'Жидкое мыло для посуды 500 мл': 'https://images.unsplash.com/photo-1583947582886-f40ec95dd752?auto=format&fit=crop&w=1200&q=80',
+  'Очиститель стекол 750 мл': 'https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=1200&q=80',
+  'Универсальный чистящий спрей 1 л': 'https://images.unsplash.com/photo-1585421514738-01798e348b17?auto=format&fit=crop&w=1200&q=80',
+  'Туалетная бумага 12 рулонов': 'https://images.unsplash.com/photo-1583947215259-38e31be8751f?auto=format&fit=crop&w=1200&q=80',
+  'Средство для мытья полов 1 л': 'https://images.unsplash.com/photo-1563453392212-326f5e854473?auto=format&fit=crop&w=1200&q=80',
+  'Отбеливатель хлорный 1 л': 'https://images.unsplash.com/photo-1604335399105-a0c585fd81a1?auto=format&fit=crop&w=1200&q=80',
+  'Средство для чистки ванны 750 мл': 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1200&q=80',
+  'Спрей от насекомых 400 мл': 'https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?auto=format&fit=crop&w=1200&q=80',
+  'Яблоки красные': '/product-images/apples-red.svg',
+  Бананы: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=1200&q=80',
+  Помидоры: '/product-images/tomatoes.svg',
+  Огурцы: '/product-images/cucumbers.svg',
+  Морковь: '/product-images/carrots.svg',
+  'Средство для мытья посуды': 'https://images.unsplash.com/photo-1583947582886-f40ec95dd752?auto=format&fit=crop&w=1200&q=80',
+  'Универсальный очиститель': 'https://images.unsplash.com/photo-1585421514738-01798e348b17?auto=format&fit=crop&w=1200&q=80',
+  'Стиральный порошок': 'https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?auto=format&fit=crop&w=1200&q=80',
+  'Чистящее средство для ванной': 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1200&q=80',
+  'Средство для чистки окон': 'https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=1200&q=80',
+  'Дезинфекционное средство': '/product-images/disinfectant.svg',
+  'Молоко коровье': 'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=1200&q=80',
+  'Печенье овсяное': 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=1200&q=80',
+  'Хлеб пшеничный': 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=1200&q=80',
+  Творог: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?auto=format&fit=crop&w=1200&q=80',
+  Сметана: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=1200&q=80',
+  'Масло сливочное': '/product-images/butter.svg',
+  'Мёд натуральный': 'https://images.unsplash.com/photo-1587049352851-8d4e89133924?auto=format&fit=crop&w=1200&q=80',
+  'Каша овсяная': 'https://images.unsplash.com/photo-1517673400267-0251440c45dc?auto=format&fit=crop&w=1200&q=80',
+}
+
+const attachProductImage = (product) => {
+  const fallbackImage = productImageByName[product.name]
+  const unitType = getNormalizedUnitType(product)
+  const imageUrls =
+    fallbackImage
+      ? [fallbackImage]
+      : Array.isArray(product.imageUrls) && product.imageUrls.length > 0
+        ? product.imageUrls
+        : []
+
+  return {
+    ...product,
+    unitType,
+    imageUrls,
+  }
+}
+
+const getNormalizedUnitType = (product) => {
+  if (product.category === 'vegetables' || legacyVegetableNames.has(product.name)) {
+    return 'kg'
+  }
+
+  if (product.unitType === 'ml') {
+    return 'l'
+  }
+
+  return product.unitType || 'piece'
+}
+
+const getNormalizedAdminCategory = (category) => {
+  if (category === 'equipment') {
+    return 'vegetables'
+  }
+
+  if (category === 'nutrition') {
+    return 'chemistry'
+  }
+
+  return category || 'general'
+}
+
 function App() {
   const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001'
   const paymentUrl = 'https://pay.kaspi.kz/pay/klrytula'
@@ -19,7 +115,7 @@ function App() {
     },
     {
       author: 'Елена М.',
-      text: 'Отличный выбор спортивных товаров. Доставка очень быстрая!',
+      text: 'Отличный выбор товаров. Доставка очень быстрая!',
     },
   ]
   const [currentPage, setCurrentPage] = useState('home')
@@ -44,7 +140,9 @@ function App() {
   const [productsError, setProductsError] = useState('')
   const [shopSearchQuery, setShopSearchQuery] = useState('')
   const [shopPriceSort, setShopPriceSort] = useState('default')
+  const [selectedShopCategory, setSelectedShopCategory] = useState('all')
   const [selectedProduct, setSelectedProduct] = useState(null)
+  const [recentlyAddedProductId, setRecentlyAddedProductId] = useState(null)
   const [cartItems, setCartItems] = useState(() => {
     const raw = localStorage.getItem('lorefit_cart')
     return raw ? JSON.parse(raw) : []
@@ -83,11 +181,14 @@ function App() {
   const [adminOrderMaxSum, setAdminOrderMaxSum] = useState('')
   const [adminProductForm, setAdminProductForm] = useState({
     name: '',
-    category: 'equipment',
+    createdAt: '',
+    category: 'general',
     description: '',
     priceKzt: '',
+    markupPercent: '',
     stockQuantity: '',
     imageUrlsText: '',
+    unitType: 'piece',
     isActive: true,
   })
 
@@ -104,14 +205,31 @@ function App() {
 
   const formatKzt = (amount) => `${new Intl.NumberFormat('ru-RU').format(amount)} ₸`
   const categoryLabels = {
-    equipment: 'Спортивный инвентарь',
-    nutrition: 'Спортивное питание',
+    vegetables: 'Овощи и фрукты',
+    chemistry: 'Химия и уборка',
+    general: 'Общее',
+  }
+
+  const unitLabels = {
+    piece: 'шт',
+    kg: 'кг',
+    l: 'л',
+    ml: 'мл',
+    g: 'г',
   }
 
   const statusLabels = {
     in_stock: 'В наличии',
     out_of_stock: 'Нет в наличии',
     inactive: 'Неактивен',
+  }
+
+  const getQuantityIncrement = (unitType) => {
+    return unitType === 'kg' || unitType === 'l' ? 0.5 : 1
+  }
+
+  const getProductUnitType = (product) => {
+    return getNormalizedUnitType(product)
   }
 
   const orderStatusLabels = {
@@ -163,6 +281,15 @@ function App() {
     return byQuery && byStatus && byDateFrom && byDateTo && byMin && byMax
   })
 
+  const adminBasePrice = Number(adminProductForm.priceKzt) || 0
+  const adminMarkupPercent = Number(adminProductForm.markupPercent) || 0
+  const adminStockQuantity = Number(adminProductForm.stockQuantity) || 0
+  const adminPriceWithMarkup = Math.round(adminBasePrice * (1 + adminMarkupPercent / 100))
+  const adminTotalWithMarkup = adminPriceWithMarkup * adminStockQuantity
+  const adminCreatedAtLabel = adminProductForm.createdAt
+    ? new Date(adminProductForm.createdAt).toLocaleString('ru-RU')
+    : 'Новая карточка'
+
   const refreshProducts = async () => {
     setProductsLoading(true)
     setProductsError('')
@@ -175,7 +302,11 @@ function App() {
         throw new Error(data.message || 'Failed to load products')
       }
 
-      setProducts(data.products || [])
+      setProducts(
+        (data.products || [])
+          .filter((product) => !hiddenProductNames.includes(product.name))
+          .map(attachProductImage),
+      )
     } catch (error) {
       setProductsError('Не удалось загрузить товары. Попробуйте позже.')
     } finally {
@@ -225,6 +356,10 @@ function App() {
   }, [cartItems])
 
   useEffect(() => {
+    setCartItems((prev) => prev.filter((item) => !hiddenProductNames.includes(item.name)))
+  }, [])
+
+  useEffect(() => {
     if (!products.length) {
       return
     }
@@ -243,6 +378,7 @@ function App() {
             quantity: Math.min(item.quantity, product.stockQuantity),
             priceKzt: product.priceKzt,
             name: product.name,
+            unitType: getProductUnitType(product),
           }
         })
         .filter(Boolean),
@@ -261,21 +397,38 @@ function App() {
     setDeliveryAddress([authUser.country, authUser.city].filter(Boolean).join(', '))
   }, [currentPage, fulfillmentType, deliveryAddress, authUser])
 
+  useEffect(() => {
+    if (recentlyAddedProductId === null) {
+      return undefined
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setRecentlyAddedProductId(null)
+    }, 260)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [recentlyAddedProductId])
+
   const addToCart = (product) => {
     if (product.availabilityStatus !== 'in_stock') {
       return
     }
 
+    setRecentlyAddedProductId(product.id)
+
     setCartItems((prev) => {
       const existing = prev.find((item) => item.productId === product.id)
+      const unitType = getProductUnitType(product)
+      const increment = getQuantityIncrement(unitType)
 
       if (existing) {
-        if (existing.quantity >= product.stockQuantity) {
+        const newQuantity = parseFloat((existing.quantity + increment).toFixed(1))
+        if (newQuantity > product.stockQuantity) {
           return prev
         }
 
         return prev.map((item) =>
-          item.productId === product.id ? { ...item, quantity: item.quantity + 1 } : item,
+          item.productId === product.id ? { ...item, quantity: newQuantity } : item,
         )
       }
 
@@ -285,7 +438,8 @@ function App() {
           productId: product.id,
           name: product.name,
           priceKzt: product.priceKzt,
-          quantity: 1,
+          quantity: increment,
+          unitType,
         },
       ]
     })
@@ -300,7 +454,11 @@ function App() {
         throw new Error(data.message || 'Failed to load product')
       }
 
-      setSelectedProduct(data.product)
+      if (hiddenProductNames.includes(data.product?.name)) {
+        throw new Error('Product is hidden')
+      }
+
+      setSelectedProduct(attachProductImage(data.product))
       setCurrentPage('product-details')
     } catch (error) {
       setProductsError('Не удалось открыть карточку товара.')
@@ -319,8 +477,19 @@ function App() {
     }
 
     setCartItems((prev) =>
-      prev.map((item) => (item.productId === productId ? { ...item, quantity: nextQuantity } : item)),
+      prev.map((item) =>
+        item.productId === productId
+          ? { ...item, quantity: parseFloat(nextQuantity.toFixed(1)) }
+          : item,
+      ),
     )
+  }
+
+  const getQuantityDisplay = (quantity, unitType) => {
+    if (unitType === 'kg' || unitType === 'l') {
+      return `${quantity} ${unitLabels[unitType]}`
+    }
+    return `${Math.round(quantity)} ${unitLabels[unitType]}`
   }
 
   const removeFromCart = (productId) => {
@@ -461,11 +630,14 @@ function App() {
     setAdminProductModalOpen(false)
     setAdminProductForm({
       name: '',
-      category: 'equipment',
+      createdAt: '',
+      category: 'general',
       description: '',
       priceKzt: '',
+      markupPercent: '',
       stockQuantity: '',
       imageUrlsText: '',
+      unitType: 'piece',
       isActive: true,
     })
   }
@@ -483,11 +655,14 @@ function App() {
     setAdminProductModalOpen(true)
     setAdminProductForm({
       name: product.name,
-      category: product.category,
+      createdAt: product.createdAt || '',
+      category: getNormalizedAdminCategory(product.category),
       description: product.description,
       priceKzt: String(product.priceKzt),
+      markupPercent: '',
       stockQuantity: String(product.stockQuantity),
       imageUrlsText: (product.imageUrls || []).join(', '),
+      unitType: product.unitType || 'piece',
       isActive: Boolean(product.isActive),
     })
   }
@@ -514,6 +689,7 @@ function App() {
         .split(',')
         .map((item) => item.trim())
         .filter(Boolean),
+      unitType: adminProductForm.unitType,
       isActive: adminProductForm.isActive,
     }
 
@@ -544,6 +720,49 @@ function App() {
     } catch (error) {
       setAdminError('Не удалось сохранить товар.')
     }
+  }
+
+  const exportAdminProductToExcel = () => {
+    const rows = [
+      ['Название', adminProductForm.name || '-'],
+      ['Дата заполнения', adminCreatedAtLabel],
+      ['Категория', categoryLabels[adminProductForm.category] || adminProductForm.category || '-'],
+      ['Описание', adminProductForm.description || '-'],
+      ['Базовая цена', formatKzt(adminBasePrice)],
+      ['Надбавка', `${adminMarkupPercent}%`],
+      ['Цена с надбавкой', formatKzt(adminPriceWithMarkup)],
+      ['Количество на складе', adminProductForm.stockQuantity || '0'],
+      ['Единица измерения', unitLabels[adminProductForm.unitType] || adminProductForm.unitType || '-'],
+      ['Итого всего цена', formatKzt(adminTotalWithMarkup)],
+    ]
+
+    const tableRows = rows
+      .map(
+        ([label, value]) =>
+          `<tr><td style="border:1px solid #cfdbe8;padding:8px;font-weight:600;">${label}</td><td style="border:1px solid #cfdbe8;padding:8px;">${value}</td></tr>`,
+      )
+      .join('')
+
+    const html = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+        <head>
+          <meta charset="utf-8" />
+        </head>
+        <body>
+          <table>${tableRows}</table>
+        </body>
+      </html>
+    `
+
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${(adminProductForm.name || 'product').replace(/[^\w\u0400-\u04ff-]+/g, '_')}.xls`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
   }
 
   const deleteAdminProduct = async (productId) => {
@@ -824,7 +1043,7 @@ function App() {
                   <input
                     className="date-input"
                     id="firstName"
-                    name="Имя"
+                    name="firstName"
                     type="text"
                     value={authForm.firstName}
                     onChange={updateAuthForm}
@@ -837,7 +1056,7 @@ function App() {
                   <input
                     className="date-input"
                     id="lastName"
-                    name="Фамилия"
+                    name="lastName"
                     type="text"
                     value={authForm.lastName}
                     onChange={updateAuthForm}
@@ -850,7 +1069,7 @@ function App() {
                   <input
                     className="date-input"
                     id="country"
-                    name="Страна"
+                    name="country"
                     type="text"
                     value={authForm.country}
                     onChange={updateAuthForm}
@@ -863,7 +1082,7 @@ function App() {
                   <input
                     className="date-input"
                     id="city"
-                    name="Город"
+                    name="city"
                     type="text"
                     value={authForm.city}
                     onChange={updateAuthForm}
@@ -893,7 +1112,10 @@ function App() {
 
   if (currentPage === 'shop') {
     const normalizedQuery = shopSearchQuery.trim().toLowerCase()
-    const searchedProducts = products.filter((item) =>
+    const categoryFilteredProducts = products.filter((item) =>
+      selectedShopCategory === 'all' || item.category === selectedShopCategory,
+    )
+    const searchedProducts = categoryFilteredProducts.filter((item) =>
       item.name.toLowerCase().includes(normalizedQuery),
     )
 
@@ -913,7 +1135,7 @@ function App() {
       <div className="page">
         <header className="hero shop-hero">
           <nav className="nav container shop-nav">
-            <div className="brand">LoreFit</div>
+            <div className="brand">Для Народа</div>
             <div className="nav-links">
               <button className="nav-link-button" type="button" onClick={() => setCurrentPage('home')}>
                 Главная
@@ -976,13 +1198,31 @@ function App() {
         <main>
           <section className="section container shop-page-container">
             <section className="shop-card shop-catalog shop-card-wide">
-              <p className="badge">Спортивные товары</p>
-              <h1>Товары для эффективных тренировок</h1>
+              <p className="badge">Магазин товаров</p>
+              <h1>Товары для дома и повседневных покупок</h1>
               <p className="booking-text">
-                Выбери нужный инвентарь для занятий дома и в зале.
+                Выбери нужные товары для дома, кухни и повседневного использования.
               </p>
 
               <div className="shop-controls">
+                <div>
+                  <label className="field-label" htmlFor="shop-category">
+                    Категория
+                  </label>
+                  <select
+                    className="date-input"
+                    id="shop-category"
+                    value={selectedShopCategory}
+                    onChange={(event) => setSelectedShopCategory(event.target.value)}
+                  >
+                    <option value="all">Все категории</option>
+                    {Object.entries(categoryLabels).map(([key, label]) => (
+                      <option key={key} value={key}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div>
                   <label className="field-label" htmlFor="shop-search">
                     Поиск по названию
@@ -1035,9 +1275,12 @@ function App() {
                     <h3>{product.name}</h3>
                     <p>{product.description}</p>
                     <div className="product-footer">
-                      <strong>{formatKzt(product.priceKzt)}</strong>
+                      <div>
+                        <strong>{formatKzt(product.priceKzt)}</strong>
+                        <small>за {unitLabels[getProductUnitType(product)]}</small>
+                      </div>
                       <button
-                        className="primary"
+                        className={`primary add-to-cart-button${recentlyAddedProductId === product.id ? ' is-added' : ''}`}
                         type="button"
                         disabled={product.availabilityStatus !== 'in_stock'}
                         onClick={(event) => {
@@ -1086,11 +1329,15 @@ function App() {
               </div>
               <div className="summary-row">
                 <span>Цена</span>
-                <strong>{formatKzt(selectedProduct.priceKzt)}</strong>
+                <strong>{formatKzt(selectedProduct.priceKzt)} за {unitLabels[getProductUnitType(selectedProduct)]}</strong>
               </div>
               <div className="summary-row">
-                <span>Остаток на складе</span>
-                <strong>{selectedProduct.stockQuantity} шт.</strong>
+                <span>Единица измерения</span>
+                <strong>{unitLabels[getProductUnitType(selectedProduct)]}</strong>
+              </div>
+              <div className="summary-row">
+                <span>Остаток</span>
+                <strong>{selectedProduct.stockQuantity} {unitLabels[getProductUnitType(selectedProduct)]}</strong>
               </div>
               <div className="summary-row">
                 <span>Статус наличия</span>
@@ -1139,24 +1386,26 @@ function App() {
                     <article key={item.productId} className="cart-item">
                       <div>
                         <h3>{item.name}</h3>
-                        <p>{formatKzt(item.priceKzt)} за шт.</p>
+                        <p>{formatKzt(item.priceKzt)} за {getQuantityDisplay(1, item.unitType)}</p>
                       </div>
                       <div className="cart-item-controls">
-                        <button
-                          type="button"
-                          className="slot"
-                          onClick={() => changeCartQuantity(item.productId, item.quantity - 1)}
-                        >
-                          -
-                        </button>
-                        <span>{item.quantity}</span>
-                        <button
-                          type="button"
-                          className="slot"
-                          onClick={() => changeCartQuantity(item.productId, item.quantity + 1)}
-                        >
-                          +
-                        </button>
+                        <div className="quantity-stepper">
+                          <button
+                            type="button"
+                            className="slot quantity-button"
+                            onClick={() => changeCartQuantity(item.productId, item.quantity - getQuantityIncrement(item.unitType))}
+                          >
+                            -
+                          </button>
+                          <span className="quantity-display">{getQuantityDisplay(item.quantity, item.unitType)}</span>
+                          <button
+                            type="button"
+                            className="slot quantity-button"
+                            onClick={() => changeCartQuantity(item.productId, item.quantity + getQuantityIncrement(item.unitType))}
+                          >
+                            +
+                          </button>
+                        </div>
                         <button
                           type="button"
                           className="secondary cart-remove-button"
@@ -1202,7 +1451,7 @@ function App() {
                 {cartItems.map((item) => (
                   <div key={item.productId} className="summary-row">
                     <span>
-                      {item.name} × {item.quantity}
+                      {item.name} × {getQuantityDisplay(item.quantity, item.unitType)}
                     </span>
                     <strong>{formatKzt(item.priceKzt * item.quantity)}</strong>
                   </div>
@@ -1288,7 +1537,7 @@ function App() {
       <div className="page">
         <header className="hero shop-hero">
           <nav className="nav container shop-nav">
-            <div className="brand">LoreFit</div>
+            <div className="brand">Для Народа</div>
             <div className="nav-links">
               <button className="nav-link-button" type="button" onClick={() => setCurrentPage('home')}>
                 Главная
@@ -1544,8 +1793,11 @@ function App() {
                             onChange={(event) => setAdminProductCategoryFilter(event.target.value)}
                           >
                             <option value="all">Все категории</option>
-                            <option value="equipment">Овощи</option>
-                            <option value="nutrition">Бытовая химия</option>
+                            {Object.entries(categoryLabels).map(([key, label]) => (
+                              <option key={key} value={key}>
+                                {label}
+                              </option>
+                            ))}
                           </select>
                         </div>
 
@@ -1759,6 +2011,13 @@ function App() {
                     <div className="admin-modal-card">
                       <h2>{adminEditingProductId ? 'Редактировать товар' : 'Создать товар'}</h2>
                       <form className="auth-form admin-form" onSubmit={submitAdminProduct}>
+                        <div className="admin-price-preview">
+                          <div className="summary-row">
+                            <span>Дата заполнения</span>
+                            <strong>{adminCreatedAtLabel}</strong>
+                          </div>
+                        </div>
+
                         <label className="field-label" htmlFor="admin-name">
                           Название
                         </label>
@@ -1782,8 +2041,11 @@ function App() {
                           value={adminProductForm.category}
                           onChange={updateAdminProductForm}
                         >
-                          <option value="equipment">Овощи</option>
-                          <option value="nutrition">Бытовая химия</option>
+                          {Object.entries(categoryLabels).map(([key, label]) => (
+                            <option key={key} value={key}>
+                              {label}
+                            </option>
+                          ))}
                         </select>
 
                         <label className="field-label" htmlFor="admin-description">
@@ -1798,19 +2060,46 @@ function App() {
                           required
                         />
 
-                        <label className="field-label" htmlFor="admin-price">
-                          Цена (₸)
-                        </label>
-                        <input
-                          className="date-input"
-                          id="admin-price"
-                          name="priceKzt"
-                          type="number"
-                          min="1"
-                          value={adminProductForm.priceKzt}
-                          onChange={updateAdminProductForm}
-                          required
-                        />
+                        <div className="admin-price-grid">
+                          <div>
+                            <label className="field-label" htmlFor="admin-price">
+                              Цена (₸)
+                            </label>
+                            <input
+                              className="date-input"
+                              id="admin-price"
+                              name="priceKzt"
+                              type="number"
+                              min="1"
+                              value={adminProductForm.priceKzt}
+                              onChange={updateAdminProductForm}
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="field-label" htmlFor="admin-markup">
+                              % надбавки
+                            </label>
+                            <input
+                              className="date-input"
+                              id="admin-markup"
+                              name="markupPercent"
+                              type="number"
+                              min="0"
+                              step="0.1"
+                              value={adminProductForm.markupPercent}
+                              onChange={updateAdminProductForm}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="admin-price-preview">
+                          <div className="summary-row">
+                            <span>Цена с надбавкой</span>
+                            <strong>{formatKzt(adminPriceWithMarkup)}</strong>
+                          </div>
+                        </div>
 
                         <label className="field-label" htmlFor="admin-stock">
                           Количество на складе
@@ -1825,6 +2114,29 @@ function App() {
                           onChange={updateAdminProductForm}
                           required
                         />
+
+                        <div className="admin-price-preview total">
+                          <div className="summary-row total">
+                            <span>Итого всего цена</span>
+                            <strong>{formatKzt(adminTotalWithMarkup)}</strong>
+                          </div>
+                        </div>
+
+                        <label className="field-label" htmlFor="admin-unit-type">
+                          Единица измерения
+                        </label>
+                        <select
+                          className="date-input"
+                          id="admin-unit-type"
+                          name="unitType"
+                          value={adminProductForm.unitType}
+                          onChange={updateAdminProductForm}
+                        >
+                          <option value="piece">шт (штуки)</option>
+                          <option value="kg">кг (килограммы)</option>
+                          <option value="ml">мл (миллилитры)</option>
+                          <option value="g">г (граммы)</option>
+                        </select>
 
                         <label className="field-label" htmlFor="admin-images">
                           Изображения (через запятую)
@@ -1849,6 +2161,9 @@ function App() {
                         </label>
 
                         <div className="admin-actions">
+                          <button className="secondary" type="button" onClick={exportAdminProductToExcel}>
+                            Выгрузить в Excel
+                          </button>
                           <button className="primary" type="submit">
                             {adminEditingProductId ? 'Сохранить изменения' : 'Создать товар'}
                           </button>
@@ -1925,11 +2240,11 @@ function App() {
     <div className="page">
       <header className="hero">
         <nav className="nav container">
-          <div className="brand">LoreFit</div>
+          <div className="brand">Для Народа</div>
           <div className="nav-links">
-            <a href="#products">Товары</a>
-            <a href="#about">О магазине</a>
-            <a href="#reviews">Отзывы</a>
+            <a className="nav-link-button" href="#products">Товары</a>
+            <a className="nav-link-button" href="#about">О магазине</a>
+            <a className="nav-link-button" href="#reviews">Отзывы</a>
             <button className="nav-link-button" type="button" onClick={() => setCurrentPage('shop')}>
               Магазин
             </button>
@@ -1995,9 +2310,6 @@ function App() {
               <button className="primary" onClick={() => setCurrentPage('shop')}>
                 Перейти в магазин
               </button>
-              <button className="secondary" onClick={() => setCurrentPage('shop')}>
-                Спортивные товары
-              </button>
             </div>
           </div>
 
@@ -2017,7 +2329,7 @@ function App() {
         <section className="section container" id="products">
           <div className="section-head">
             <h2>Популярные товары</h2>
-            <p>Выбирайте из нашего ассортимента спортивного инвентаря и питания.</p>
+            <p>Выбирайте из нашего ассортимента товаров для дома и повседневных покупок.</p>
           </div>
           <div className="grid cards-4">
             {products.slice(0, 4).map((product) => (
@@ -2041,7 +2353,7 @@ function App() {
           <div className="container">
             <div className="section-head">
               <h2>О нашем магазине</h2>
-              <p>Мы предлагаем качественные спортивные товары для вашего здоровья и фитнеса.</p>
+              <p>Мы предлагаем качественные товары для дома, кухни и ежедневного использования.</p>
             </div>
             <div className="grid cards-3">
               <article className="trainer-card">

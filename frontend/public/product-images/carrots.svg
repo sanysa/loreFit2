@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#fff9f0"/>
+  <path d="M245 215 L350 430 L215 405 Z" fill="#f28c28"/>
+  <path d="M405 180 L520 430 L375 395 Z" fill="#ef7f1a"/>
+  <path d="M555 215 L655 420 L530 395 Z" fill="#f49831"/>
+  <path d="M250 210 C230 150 255 125 290 110" stroke="#5fa94c" stroke-width="18" fill="none" stroke-linecap="round"/>
+  <path d="M405 175 C380 120 410 95 450 85" stroke="#5fa94c" stroke-width="18" fill="none" stroke-linecap="round"/>
+  <path d="M560 210 C535 155 565 130 605 120" stroke="#5fa94c" stroke-width="18" fill="none" stroke-linecap="round"/>
+  <text x="400" y="545" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" fill="#9a5f1e">Морковь</text>
+</svg>

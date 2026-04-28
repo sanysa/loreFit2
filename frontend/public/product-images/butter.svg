@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#fffdf2"/>
+  <rect x="185" y="260" width="430" height="165" rx="20" fill="#f2d15a"/>
+  <rect x="160" y="235" width="480" height="190" rx="26" fill="none" stroke="#d8b545" stroke-width="16"/>
+  <rect x="225" y="220" width="140" height="46" rx="12" fill="#f7e394"/>
+  <text x="400" y="332" text-anchor="middle" font-family="Arial, sans-serif" font-size="44" fill="#8b6a12">BUTTER</text>
+  <text x="400" y="545" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" fill="#8b6a12">Масло сливочное</text>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#fff8ef"/>
+  <circle cx="270" cy="320" r="115" fill="#ea4335"/>
+  <circle cx="405" cy="290" r="115" fill="#de3a2d"/>
+  <circle cx="530" cy="325" r="110" fill="#ef4a3d"/>
+  <polygon points="270,190 290,225 330,220 302,250 314,290 270,268 226,290 238,250 210,220 250,225" fill="#4f9b43"/>
+  <polygon points="405,160 425,195 465,190 437,220 449,260 405,238 361,260 373,220 345,190 385,195" fill="#4f9b43"/>
+  <text x="400" y="545" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" fill="#8a2f28">Помидоры</text>
+</svg>

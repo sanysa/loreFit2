@@ -25,36 +25,42 @@
 }
 
 .brand {
-  font-size: 1.4rem;
+  font-size: 1.55rem;
   font-weight: 800;
   color: #0f4f8c;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
-}
-
-.nav-links a {
-  color: #25445f;
-  font-weight: 500;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .nav-link-button {
   border: 0;
-  background: transparent;
+  background: #f4f8fb;
   color: #25445f;
   font-size: 1rem;
-  font-weight: 500;
-  padding: 0;
+  font-weight: 600;
+  padding: 0.78rem 1rem;
+  min-height: 46px;
+  border-radius: 12px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  text-decoration: none;
 }
 
 .nav-cart-button {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  min-width: 132px;
 }
 
 .nav-cart-icon {
@@ -90,6 +96,11 @@
 .nav-button {
   background: #0f4f8c;
   color: #fff;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .hero-content {
@@ -223,16 +234,31 @@ h1 {
   padding: 1.15rem;
 }
 
+.card-item {
+  display: flex;
+  flex-direction: column;
+}
+
 .card-item h3,
 .trainer-card h3,
 .step-card h3 {
   margin-top: 0;
 }
 
+.card-item h3 {
+  min-height: 2.6rem;
+  margin-bottom: 0.5rem;
+}
+
 .card-item p,
 .trainer-card p,
 .step-card p {
   color: #4b6578;
+}
+
+.card-item p {
+  min-height: 4.2rem;
+  margin: 0;
 }
 
 .card-item span,
@@ -242,9 +268,15 @@ h1 {
   font-weight: 600;
 }
 
+.card-item span {
+  margin-top: auto;
+  padding-top: 0.85rem;
+}
+
 .category-buy-button {
   margin-top: 0.85rem;
   width: 100%;
+  min-height: 44px;
 }
 
 .avatar {
@@ -489,7 +521,9 @@ h1 {
 .auth-nav {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.65rem;
+  flex-wrap: wrap;
 }
 
 .auth-user {
@@ -589,6 +623,8 @@ h1 {
 
 .shop-catalog .product-card {
   padding: 0.62rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .shop-catalog .product-card-clickable {
@@ -601,6 +637,8 @@ h1 {
 
 .shop-catalog .product-card h3 {
   font-size: 0.95rem;
+  min-height: 2.5rem;
+  margin-bottom: 0.45rem;
 }
 
 .shop-catalog .product-card p,
@@ -608,15 +646,49 @@ h1 {
   font-size: 0.88rem;
 }
 
+.shop-catalog .product-card p {
+  min-height: 3.9rem;
+  margin: 0;
+}
+
 .shop-catalog .product-footer {
-  margin-top: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.6rem;
   gap: 0.5rem;
 }
 
 .shop-catalog .product-footer .primary,
 .shop-catalog .product-footer .secondary {
-  padding: 0.48rem 0.7rem;
-  font-size: 0.82rem;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.88rem;
+}
+
+.shop-catalog .add-to-cart-button {
+  min-width: 118px;
+  min-height: 42px;
+  border-radius: 12px;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease;
+  box-shadow: 0 8px 18px rgba(15, 79, 140, 0.16);
+}
+
+.shop-catalog .add-to-cart-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(15, 79, 140, 0.22);
+}
+
+.shop-catalog .add-to-cart-button:active:not(:disabled),
+.shop-catalog .add-to-cart-button.is-added:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.shop-catalog .add-to-cart-button.is-added:not(:disabled) {
+  background: #16845d;
+  border-color: #16845d;
+  box-shadow: 0 10px 22px rgba(22, 132, 93, 0.22);
 }
 
 .product-footer {
@@ -661,7 +733,37 @@ h1 {
 .cart-item-controls {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.45rem;
+  flex: 0 0 auto;
+}
+
+.quantity-stepper {
+  display: grid;
+  grid-template-columns: 42px 88px 42px;
+  align-items: center;
+  gap: 0.45rem;
+  flex: 0 0 auto;
+}
+
+.quantity-button {
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 42px;
+}
+
+.quantity-display {
+  width: 88px;
+  min-width: 88px;
+  text-align: center;
+  font-weight: 600;
+  color: #1f3342;
+  flex: 0 0 88px;
 }
 
 .cart-remove-button {
@@ -697,6 +799,24 @@ h1 {
 .admin-textarea {
   min-height: 110px;
   resize: vertical;
+}
+
+.admin-price-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.admin-price-preview {
+  margin-top: 0.9rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #dce5ee;
+  border-radius: 12px;
+  background: #f8fbfd;
+}
+
+.admin-price-preview.total {
+  background: #f2f8f5;
 }
 
 .admin-checkbox {
@@ -987,6 +1107,10 @@ h1 {
   .cart-item {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .cart-item-controls {
+    justify-content: space-between;
   }
 
   .product-footer .primary {

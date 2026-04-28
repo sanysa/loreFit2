@@ -45,25 +45,3 @@ SET
     ELSE ARRAY['https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1200&q=80']::TEXT[]
   END
 WHERE COALESCE(array_length(image_urls, 1), 0) = 0;
-
-INSERT INTO products (name, category, description, price_kzt, stock_quantity, image_urls, is_active)
-VALUES
-  (
-    'Протеин Whey Core 900 г',
-    'nutrition',
-    'Сывороточный протеин для восстановления и роста мышц после тренировок.',
-    16500,
-    20,
-    ARRAY['https://images.unsplash.com/photo-1594737625785-a6cbdabd333c?auto=format&fit=crop&w=1200&q=80']::TEXT[],
-    TRUE
-  ),
-  (
-    'BCAA Amino Complex',
-    'nutrition',
-    'Комплекс аминокислот для поддержки выносливости и восстановления.',,
-    12800,
-    16,
-    ARRAY['https://images.unsplash.com/photo-1612532275214-e4ca76d0e4d1?auto=format&fit=crop&w=1200&q=80']::TEXT[],
-    TRUE
-  )
-ON CONFLICT (name) DO NOTHING;

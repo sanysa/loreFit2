@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#f2fbf1"/>
+  <rect x="150" y="250" width="250" height="90" rx="45" fill="#4f9b43" transform="rotate(-10 275 295)"/>
+  <rect x="290" y="290" width="280" height="90" rx="45" fill="#5cad4d" transform="rotate(8 430 335)"/>
+  <rect x="460" y="215" width="190" height="85" rx="42" fill="#478d3d" transform="rotate(-18 555 257)"/>
+  <text x="400" y="545" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" fill="#2f6f31">Огурцы</text>
+</svg>

@@ -15,6 +15,11 @@ const adminEmails = new Set(
     .map((item) => item.trim().toLowerCase())
     .filter(Boolean)
 );
+const hiddenProductNames = [
+  "Смарт-бутылка 750 мл",
+  "Протеин Whey Core 900 г",
+  "BCAA Amino Complex",
+];
 
 app.use(cors());
 app.use(express.json());
@@ -97,10 +102,12 @@ function mapProductRow(row) {
   return {
     id: row.id,
     name: row.name,
+    createdAt: row.created_at,
     category: row.category,
     description: row.description,
     priceKzt: Number(row.price_kzt),
     stockQuantity: Number(row.stock_quantity),
+    unitType: row.unit_type || "piece",
     imageUrls: row.image_urls || [],
     isActive: row.is_active,
     availabilityStatus: !row.is_active
@@ -114,7 +121,7 @@ function mapProductRow(row) {
 function normalizeProductPayload(body) {
   const category = String(body.category || "").trim();
   const normalizedCategory =
-    category === "sports_inventory" ? "equipment" : category === "sports_nutrition" ? "nutrition" : category;
+    category === "equipment" ? "vegetables" : category === "nutrition" ? "chemistry" : category;
 
   const imageUrls = Array.isArray(body.imageUrls)
     ? body.imageUrls.map((item) => String(item).trim()).filter(Boolean)
@@ -126,6 +133,7 @@ function normalizeProductPayload(body) {
     description: String(body.description || "").trim(),
     priceKzt: Number(body.priceKzt),
     stockQuantity: Number(body.stockQuantity),
+    unitType: String(body.unitType || "piece").trim(),
     imageUrls,
     isActive: typeof body.isActive === "boolean" ? body.isActive : true,
   };
@@ -156,10 +164,13 @@ app.get("/api/products", async (req, res) => {
   try {
     const result = await pool.query(
       `
-        SELECT id, name, category, description, price_kzt, stock_quantity, image_urls, is_active
+        SELECT id, name, created_at, category, description, price_kzt, stock_quantity, image_urls, is_active
+             , unit_type
         FROM products
+        WHERE name <> ALL($1::text[])
         ORDER BY id ASC
-      `
+      `,
+      [hiddenProductNames]
     );
 
     return res.json({
@@ -181,11 +192,13 @@ app.get("/api/products/:id", async (req, res) => {
   try {
     const result = await pool.query(
       `
-        SELECT id, name, category, description, price_kzt, stock_quantity, image_urls, is_active
+        SELECT id, name, created_at, category, description, price_kzt, stock_quantity, image_urls, is_active
+             , unit_type
         FROM products
         WHERE id = $1
+          AND name <> ALL($2::text[])
       `,
-      [productId]
+      [productId, hiddenProductNames]
     );
 
     if (result.rows.length === 0) {
@@ -207,10 +220,13 @@ app.get("/api/admin/products", requireAdmin, async (req, res) => {
   try {
     const result = await pool.query(
       `
-        SELECT id, name, category, description, price_kzt, stock_quantity, image_urls, is_active
+        SELECT id, name, created_at, category, description, price_kzt, stock_quantity, image_urls, is_active
+             , unit_type
         FROM products
+        WHERE name <> ALL($1::text[])
         ORDER BY id DESC
-      `
+      `,
+      [hiddenProductNames]
     );
 
     return res.json({ products: result.rows.map(mapProductRow) });
@@ -226,7 +242,8 @@ app.post("/api/admin/products", requireAdmin, async (req, res) => {
   if (
     !payload.name ||
     !payload.description ||
-    !["vegetables", "chemistry"].includes(payload.category) ||
+    !["vegetables", "chemistry", "general"].includes(payload.category) ||
+    !["piece", "kg", "ml", "g"].includes(payload.unitType) ||
     !Number.isFinite(payload.priceKzt) ||
     payload.priceKzt <= 0 ||
     !Number.isInteger(payload.stockQuantity) ||
@@ -238,9 +255,9 @@ app.post("/api/admin/products", requireAdmin, async (req, res) => {
   try {
     const result = await pool.query(
       `
-        INSERT INTO products (name, category, description, price_kzt, stock_quantity, image_urls, is_active)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING id, name, category, description, price_kzt, stock_quantity, image_urls, is_active
+        INSERT INTO products (name, category, description, price_kzt, stock_quantity, unit_type, image_urls, is_active)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id, name, created_at, category, description, price_kzt, stock_quantity, unit_type, image_urls, is_active
       `,
       [
         payload.name,
@@ -248,6 +265,7 @@ app.post("/api/admin/products", requireAdmin, async (req, res) => {
         payload.description,
         payload.priceKzt,
         payload.stockQuantity,
+        payload.unitType,
         payload.imageUrls,
         payload.isActive,
       ]
@@ -272,7 +290,8 @@ app.put("/api/admin/products/:id", requireAdmin, async (req, res) => {
   if (
     !payload.name ||
     !payload.description ||
-    !["equipment", "nutrition"].includes(payload.category) ||
+    !["vegetables", "chemistry", "general"].includes(payload.category) ||
+    !["piece", "kg", "ml", "g"].includes(payload.unitType) ||
     !Number.isFinite(payload.priceKzt) ||
     payload.priceKzt <= 0 ||
     !Number.isInteger(payload.stockQuantity) ||
@@ -291,10 +310,11 @@ app.put("/api/admin/products/:id", requireAdmin, async (req, res) => {
           description = $3,
           price_kzt = $4,
           stock_quantity = $5,
-          image_urls = $6,
-          is_active = $7
-        WHERE id = $8
-        RETURNING id, name, category, description, price_kzt, stock_quantity, image_urls, is_active
+          unit_type = $6,
+          image_urls = $7,
+          is_active = $8
+        WHERE id = $9
+        RETURNING id, name, created_at, category, description, price_kzt, stock_quantity, unit_type, image_urls, is_active
       `,
       [
         payload.name,
@@ -302,6 +322,7 @@ app.put("/api/admin/products/:id", requireAdmin, async (req, res) => {
         payload.description,
         payload.priceKzt,
         payload.stockQuantity,
+        payload.unitType,
         payload.imageUrls,
         payload.isActive,
         productId,
