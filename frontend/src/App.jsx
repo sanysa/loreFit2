@@ -102,7 +102,7 @@ const getNormalizedAdminCategory = (category) => {
 }
 
 function App() {
-  const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001'
+  const apiBaseUrl = import.meta.env.VITE_API_URL ?? ''
   const paymentUrl = 'https://pay.kaspi.kz/pay/klrytula'
   const reviews = [
     {
