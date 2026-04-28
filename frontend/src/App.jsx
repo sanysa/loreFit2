@@ -86,15 +86,19 @@ const getNormalizedUnitType = (product) => {
 }
 
 const getNormalizedAdminCategory = (category) => {
-  if (category === 'equipment') {
+  if (category === 'equipment' || category === 'sports_inventory') {
     return 'vegetables'
   }
 
-  if (category === 'nutrition') {
+  if (category === 'nutrition' || category === 'sports_nutrition') {
     return 'chemistry'
   }
 
-  return category || 'general'
+  if (!['vegetables', 'chemistry', 'general'].includes(category)) {
+    return 'general'
+  }
+
+  return category
 }
 
 function App() {
@@ -718,7 +722,7 @@ function App() {
       await loadAdminData()
       await refreshProducts()
     } catch (error) {
-      setAdminError('Не удалось сохранить товар.')
+      setAdminError(error?.message ? `Не удалось сохранить товар: ${error.message}` : 'Не удалось сохранить товар.')
     }
   }
 
@@ -1825,11 +1829,14 @@ function App() {
                           setAdminEditingProductId(null)
                           setAdminProductForm({
                             name: '',
-                            category: 'equipment',
+                            createdAt: '',
+                            category: 'general',
                             description: '',
                             priceKzt: '',
+                            markupPercent: '',
                             stockQuantity: '',
                             imageUrlsText: '',
+                            unitType: 'piece',
                             isActive: true,
                           })
                           setAdminProductModalOpen(true)

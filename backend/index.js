@@ -118,10 +118,19 @@ function mapProductRow(row) {
   };
 }
 
+const CATEGORY_ALIASES = {
+  equipment: "vegetables",
+  sports_inventory: "vegetables",
+  nutrition: "chemistry",
+  sports_nutrition: "chemistry",
+};
+
+const ALLOWED_CATEGORIES = ["vegetables", "chemistry", "general"];
+const ALLOWED_UNIT_TYPES = ["piece", "kg", "ml", "g", "l"];
+
 function normalizeProductPayload(body) {
   const category = String(body.category || "").trim();
-  const normalizedCategory =
-    category === "equipment" ? "vegetables" : category === "nutrition" ? "chemistry" : category;
+  const normalizedCategory = CATEGORY_ALIASES[category] || category || "general";
 
   const imageUrls = Array.isArray(body.imageUrls)
     ? body.imageUrls.map((item) => String(item).trim()).filter(Boolean)
@@ -242,14 +251,16 @@ app.post("/api/admin/products", requireAdmin, async (req, res) => {
   if (
     !payload.name ||
     !payload.description ||
-    !["vegetables", "chemistry", "general"].includes(payload.category) ||
-    !["piece", "kg", "ml", "g"].includes(payload.unitType) ||
+    !ALLOWED_CATEGORIES.includes(payload.category) ||
+    !ALLOWED_UNIT_TYPES.includes(payload.unitType) ||
     !Number.isFinite(payload.priceKzt) ||
     payload.priceKzt <= 0 ||
     !Number.isFinite(payload.stockQuantity) ||
     payload.stockQuantity < 0
   ) {
-    return res.status(400).json({ message: "Invalid product payload" });
+    return res.status(400).json({
+      message: `Invalid product payload (category=${payload.category}, unitType=${payload.unitType}, name=${payload.name ? "ok" : "empty"}, description=${payload.description ? "ok" : "empty"}, priceKzt=${payload.priceKzt}, stockQuantity=${payload.stockQuantity})`,
+    });
   }
 
   try {
@@ -290,14 +301,16 @@ app.put("/api/admin/products/:id", requireAdmin, async (req, res) => {
   if (
     !payload.name ||
     !payload.description ||
-    !["vegetables", "chemistry", "general"].includes(payload.category) ||
-    !["piece", "kg", "ml", "g"].includes(payload.unitType) ||
+    !ALLOWED_CATEGORIES.includes(payload.category) ||
+    !ALLOWED_UNIT_TYPES.includes(payload.unitType) ||
     !Number.isFinite(payload.priceKzt) ||
     payload.priceKzt <= 0 ||
     !Number.isFinite(payload.stockQuantity) ||
     payload.stockQuantity < 0
   ) {
-    return res.status(400).json({ message: "Invalid product payload" });
+    return res.status(400).json({
+      message: `Invalid product payload (category=${payload.category}, unitType=${payload.unitType}, name=${payload.name ? "ok" : "empty"}, description=${payload.description ? "ok" : "empty"}, priceKzt=${payload.priceKzt}, stockQuantity=${payload.stockQuantity})`,
+    });
   }
 
   try {
