@@ -683,7 +683,7 @@ function App() {
       name: adminProductForm.name.trim(),
       category: adminProductForm.category,
       description: adminProductForm.description.trim(),
-      priceKzt: Number(adminProductForm.priceKzt),
+      priceKzt: adminPriceWithMarkup,
       stockQuantity: Number(adminProductForm.stockQuantity),
       imageUrls: adminProductForm.imageUrlsText
         .split(',')
@@ -1978,6 +1978,12 @@ function App() {
                               <p>{new Date(order.createdAt).toLocaleString('ru-RU')}</p>
                               <p>Статус: {orderStatusLabels[order.status] || order.status}</p>
                               <p>Сумма: {formatKzt(order.totalAmountKzt)}</p>
+                              <p>
+                                Способ получения: {order.fulfillmentType === 'delivery' ? 'Доставка' : 'Самовывоз'}
+                              </p>
+                              {order.fulfillmentType === 'delivery' && (
+                                <p>Адрес доставки: {order.deliveryAddress || '—'}</p>
+                              )}
                               <p>
                                 Состав: {(order.items || [])
                                   .map((item) => `${item.name} × ${item.quantity}`)

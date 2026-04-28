@@ -246,7 +246,7 @@ app.post("/api/admin/products", requireAdmin, async (req, res) => {
     !["piece", "kg", "ml", "g"].includes(payload.unitType) ||
     !Number.isFinite(payload.priceKzt) ||
     payload.priceKzt <= 0 ||
-    !Number.isInteger(payload.stockQuantity) ||
+    !Number.isFinite(payload.stockQuantity) ||
     payload.stockQuantity < 0
   ) {
     return res.status(400).json({ message: "Invalid product payload" });
@@ -294,7 +294,7 @@ app.put("/api/admin/products/:id", requireAdmin, async (req, res) => {
     !["piece", "kg", "ml", "g"].includes(payload.unitType) ||
     !Number.isFinite(payload.priceKzt) ||
     payload.priceKzt <= 0 ||
-    !Number.isInteger(payload.stockQuantity) ||
+    !Number.isFinite(payload.stockQuantity) ||
     payload.stockQuantity < 0
   ) {
     return res.status(400).json({ message: "Invalid product payload" });
@@ -490,7 +490,7 @@ app.post("/api/orders", async (req, res) => {
       (item) =>
         Number.isInteger(item.productId) &&
         item.productId > 0 &&
-        Number.isInteger(item.quantity) &&
+        Number.isFinite(item.quantity) &&
         item.quantity > 0
     );
 
@@ -538,9 +538,8 @@ app.post("/api/orders", async (req, res) => {
       };
     });
 
-    const totalAmountKzt = orderItems.reduce(
-      (sum, item) => sum + item.priceKzt * item.quantity,
-      0
+    const totalAmountKzt = Math.round(
+      orderItems.reduce((sum, item) => sum + item.priceKzt * item.quantity, 0)
     );
 
     await client.query("BEGIN");
