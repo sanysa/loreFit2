@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 
 const hiddenProductNames = [
@@ -199,7 +199,12 @@ function App() {
     imageUrlsText: '',
     unitType: 'piece',
     isActive: true,
+    barcode: '',
   })
+  const [barcodeScanning, setBarcodeScanning] = useState(false)
+  const barcodeVideoRef = useRef(null)
+  const barcodeStreamRef = useRef(null)
+  const barcodeScanningRef = useRef(false)
 
 
 
@@ -679,6 +684,7 @@ function App() {
       imageUrlsText: '',
       unitType: 'piece',
       isActive: true,
+      barcode: '',
     })
   }
 
@@ -706,6 +712,7 @@ function App() {
       imageUrlsText: (product.imageUrls || []).join(', '),
       unitType: product.unitType || 'piece',
       isActive: Boolean(product.isActive),
+      barcode: product.barcode || '',
     })
   }
 
@@ -735,6 +742,7 @@ function App() {
         .filter(Boolean),
       unitType: adminProductForm.unitType,
       isActive: adminProductForm.isActive,
+      barcode: adminProductForm.barcode.trim(),
     }
 
     try {
@@ -767,6 +775,53 @@ function App() {
   }
 
   const [imageUploading, setImageUploading] = useState(false)
+
+  const stopBarcodeScanner = () => {
+    barcodeScanningRef.current = false
+    if (barcodeStreamRef.current) {
+      barcodeStreamRef.current.getTracks().forEach((t) => t.stop())
+      barcodeStreamRef.current = null
+    }
+    setBarcodeScanning(false)
+  }
+
+  const startBarcodeScanner = async () => {
+    if (!('BarcodeDetector' in window)) {
+      alert('Ваш браузер не поддерживает сканирование через камеру. Введите штрих-код вручную.')
+      return
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      barcodeStreamRef.current = stream
+      barcodeScanningRef.current = true
+      setBarcodeScanning(true)
+      setTimeout(() => {
+        if (barcodeVideoRef.current) {
+          barcodeVideoRef.current.srcObject = stream
+          barcodeVideoRef.current.play()
+          const detector = new window.BarcodeDetector({
+            formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'qr_code'],
+          })
+          const scan = async () => {
+            if (!barcodeScanningRef.current || !barcodeVideoRef.current) return
+            try {
+              const barcodes = await detector.detect(barcodeVideoRef.current)
+              if (barcodes.length > 0) {
+                setAdminProductForm((prev) => ({ ...prev, barcode: barcodes[0].rawValue }))
+                stopBarcodeScanner()
+                return
+              }
+            } catch (_) {}
+            requestAnimationFrame(scan)
+          }
+          requestAnimationFrame(scan)
+        }
+      }, 150)
+    } catch (err) {
+      console.error('Camera error:', err)
+      alert('Не удалось получить доступ к камере')
+    }
+  }
 
   const uploadProductImage = async (file) => {
     const token = localStorage.getItem('lorefit_token')
@@ -2101,10 +2156,13 @@ function App() {
                             description: '',
                             priceKzt: '',
                             markupPercent: '',
+                            discountPriceKzt: '',
+                            useDiscount: false,
                             stockQuantity: '',
                             imageUrlsText: '',
                             unitType: 'piece',
                             isActive: true,
+                            barcode: '',
                           })
                           setAdminProductModalOpen(true)
                         }}
@@ -2416,6 +2474,41 @@ function App() {
                           onChange={updateAdminProductForm}
                           required
                         />
+
+                        <label className="field-label" htmlFor="admin-barcode">
+                          Штрих-код
+                        </label>
+                        <div className="barcode-input-row">
+                          <input
+                            className="date-input"
+                            id="admin-barcode"
+                            name="barcode"
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="Введите или отсканируйте"
+                            value={adminProductForm.barcode}
+                            onChange={updateAdminProductForm}
+                          />
+                          <button
+                            type="button"
+                            className="barcode-scan-btn"
+                            onClick={barcodeScanning ? stopBarcodeScanner : startBarcodeScanner}
+                            title="Сканировать штрих-код камерой"
+                          >
+                            {barcodeScanning ? '✕ Стоп' : '📷 Скан'}
+                          </button>
+                        </div>
+                        {barcodeScanning && (
+                          <div className="barcode-scanner-wrap">
+                            <video
+                              ref={barcodeVideoRef}
+                              className="barcode-scanner-video"
+                              muted
+                              playsInline
+                            />
+                            <p className="barcode-scanner-hint">Наведите камеру на штрих-код</p>
+                          </div>
+                        )}
 
                         <label className="field-label" htmlFor="admin-category">
                           Категория
