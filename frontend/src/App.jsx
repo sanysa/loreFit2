@@ -147,6 +147,7 @@ function App() {
   const [selectedShopCategory, setSelectedShopCategory] = useState('all')
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [recentlyAddedProductId, setRecentlyAddedProductId] = useState(null)
+  const [cartAuthToast, setCartAuthToast] = useState(false)
   const [cartItems, setCartItems] = useState(() => {
     const raw = localStorage.getItem('lorefit_cart')
     return raw ? JSON.parse(raw) : []
@@ -156,6 +157,7 @@ function App() {
   const [orderLoading, setOrderLoading] = useState(false)
   const [orderError, setOrderError] = useState('')
   const [lastOrder, setLastOrder] = useState(null)
+  const [newOrderNotification, setNewOrderNotification] = useState(false)
   const [activeOrders, setActiveOrders] = useState([])
   const [historyOrders, setHistoryOrders] = useState([])
   const [ordersLoading, setOrdersLoading] = useState(false)
@@ -172,6 +174,7 @@ function App() {
   const [adminEditingProductId, setAdminEditingProductId] = useState(null)
   const [adminProductModalOpen, setAdminProductModalOpen] = useState(false)
   const [adminDeleteProductId, setAdminDeleteProductId] = useState(null)
+  const [adminDeleteOrderId, setAdminDeleteOrderId] = useState(null)
   const [adminStatusModalOrderId, setAdminStatusModalOrderId] = useState(null)
   const [adminStatusModalValue, setAdminStatusModalValue] = useState('new')
   const [adminProductQuery, setAdminProductQuery] = useState('')
@@ -190,6 +193,8 @@ function App() {
     description: '',
     priceKzt: '',
     markupPercent: '',
+    discountPriceKzt: '',
+    useDiscount: false,
     stockQuantity: '',
     imageUrlsText: '',
     unitType: 'piece',
@@ -284,6 +289,25 @@ function App() {
 
     return byQuery && byStatus && byDateFrom && byDateTo && byMin && byMax
   })
+
+  const activeOrderStatuses = ['new', 'processing', 'paid', 'shipped_or_ready']
+  const historyOrderStatuses = ['completed', 'cancelled']
+
+  const orderStats = {
+    total: adminOrders.length,
+    active: adminOrders.filter((o) => activeOrderStatuses.includes(o.status)).length,
+    completed: adminOrders.filter((o) => o.status === 'completed').length,
+    cancelled: adminOrders.filter((o) => o.status === 'cancelled').length,
+    revenue: adminOrders
+      .filter((o) => o.status === 'completed')
+      .reduce((s, o) => s + o.totalAmountKzt, 0),
+  }
+
+  const adminHistoryOrders = adminOrders
+    .filter((o) => historyOrderStatuses.includes(o.status))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+
+  const adminNewOrdersCount = adminOrders.filter((o) => o.status === 'new').length
 
   const adminBasePrice = Number(adminProductForm.priceKzt) || 0
   const adminMarkupPercent = Number(adminProductForm.markupPercent) || 0
@@ -414,6 +438,11 @@ function App() {
   }, [recentlyAddedProductId])
 
   const addToCart = (product) => {
+    if (!authUser) {
+      setCartAuthToast(true)
+      setTimeout(() => setCartAuthToast(false), 3000)
+      return
+    }
     if (product.availabilityStatus !== 'in_stock') {
       return
     }
@@ -424,6 +453,7 @@ function App() {
       const existing = prev.find((item) => item.productId === product.id)
       const unitType = getProductUnitType(product)
       const increment = getQuantityIncrement(unitType)
+      const finalPrice = product.useDiscount ? product.discountPriceKzt : product.priceKzt
 
       if (existing) {
         const newQuantity = parseFloat((existing.quantity + increment).toFixed(1))
@@ -432,7 +462,7 @@ function App() {
         }
 
         return prev.map((item) =>
-          item.productId === product.id ? { ...item, quantity: newQuantity } : item,
+          item.productId === product.id ? { ...item, quantity: newQuantity, priceKzt: finalPrice } : item,
         )
       }
 
@@ -441,7 +471,7 @@ function App() {
         {
           productId: product.id,
           name: product.name,
-          priceKzt: product.priceKzt,
+          priceKzt: finalPrice,
           quantity: increment,
           unitType,
         },
@@ -581,8 +611,12 @@ function App() {
         throw new Error('Failed to load orders')
       }
 
-      setActiveOrders(activeData.orders || [])
+      const freshActive = activeData.orders || []
+      setActiveOrders(freshActive)
       setHistoryOrders(historyData.orders || [])
+      if (freshActive.length === 0) {
+        setNewOrderNotification(false)
+      }
     } catch (error) {
       setOrdersError('Не удалось загрузить заказы. Попробуйте позже.')
     } finally {
@@ -639,6 +673,8 @@ function App() {
       description: '',
       priceKzt: '',
       markupPercent: '',
+      discountPriceKzt: '',
+      useDiscount: false,
       stockQuantity: '',
       imageUrlsText: '',
       unitType: 'piece',
@@ -664,6 +700,8 @@ function App() {
       description: product.description,
       priceKzt: String(product.priceKzt),
       markupPercent: '',
+      discountPriceKzt: String(product.discountPriceKzt || ''),
+      useDiscount: product.useDiscount || false,
       stockQuantity: String(product.stockQuantity),
       imageUrlsText: (product.imageUrls || []).join(', '),
       unitType: product.unitType || 'piece',
@@ -688,6 +726,8 @@ function App() {
       category: adminProductForm.category,
       description: adminProductForm.description.trim(),
       priceKzt: adminPriceWithMarkup,
+      discountPriceKzt: Number(adminProductForm.discountPriceKzt) || 0,
+      useDiscount: adminProductForm.useDiscount,
       stockQuantity: Number(adminProductForm.stockQuantity),
       imageUrls: adminProductForm.imageUrlsText
         .split(',')
@@ -723,6 +763,38 @@ function App() {
       await refreshProducts()
     } catch (error) {
       setAdminError(error?.message ? `Не удалось сохранить товар: ${error.message}` : 'Не удалось сохранить товар.')
+    }
+  }
+
+  const [imageUploading, setImageUploading] = useState(false)
+
+  const uploadProductImage = async (file) => {
+    const token = localStorage.getItem('lorefit_token')
+    if (!token || !file) return
+
+    setImageUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('image', file)
+      const response = await fetch(`${apiBaseUrl}/api/admin/upload-image`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.message || 'Upload failed')
+
+      const newUrl = `${apiBaseUrl}${data.url}`
+      setAdminProductForm((prev) => ({
+        ...prev,
+        imageUrlsText: prev.imageUrlsText
+          ? `${prev.imageUrlsText}, ${newUrl}`
+          : newUrl,
+      }))
+    } catch (error) {
+      setAdminError('Не удалось загрузить изображение.')
+    } finally {
+      setImageUploading(false)
     }
   }
 
@@ -769,6 +841,115 @@ function App() {
     URL.revokeObjectURL(url)
   }
 
+  const exportAllProductsToExcel = async () => {
+    const token = localStorage.getItem('lorefit_token')
+    if (!token) return
+
+    // Fetch fresh data before exporting
+    let freshProducts = adminProducts
+    let freshOrders = adminOrders
+    try {
+      const [prodRes, ordRes] = await Promise.all([
+        fetch(`${apiBaseUrl}/api/admin/products`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${apiBaseUrl}/api/admin/orders`, { headers: { Authorization: `Bearer ${token}` } }),
+      ])
+      if (prodRes.ok && ordRes.ok) {
+        const prodData = await prodRes.json()
+        const ordData = await ordRes.json()
+        freshProducts = prodData.products || adminProducts
+        freshOrders = ordData.orders || adminOrders
+        setAdminProducts(freshProducts)
+        setAdminOrders(freshOrders)
+      }
+    } catch (_) { /* use cached state on network error */ }
+
+    const headers = [
+      'ID', 'Название', 'Категория', 'Цена (₸)', 'Цена со скидкой (₸)', 'Скидка активна',
+      'Ед. измерения', 'Остаток на складе', 'Статус',
+      'Продано (кол-во)', 'Доходы — выручка (₸)', 'Расходы — остаток на складе (₸)', 'Прибыль (₸)',
+    ]
+
+    const rows = freshProducts.map((product) => {
+      const effectivePrice = product.useDiscount && product.discountPriceKzt > 0
+        ? product.discountPriceKzt
+        : product.priceKzt
+
+      let soldQty = 0
+      let revenue = 0
+      freshOrders.forEach((order) => {
+        if (order.status !== 'completed') return
+        ;(order.items || []).forEach((item) => {
+          if (Number(item.productId) === product.id) {
+            soldQty += Number(item.quantity)
+            revenue += Number(item.priceKzt) * Number(item.quantity)
+          }
+        })
+      })
+
+      const stockValue = product.stockQuantity * effectivePrice
+
+      return [
+        product.id,
+        product.name,
+        categoryLabels[product.category] || product.category,
+        product.priceKzt,
+        product.discountPriceKzt || 0,
+        product.useDiscount ? 'Да' : 'Нет',
+        unitLabels[product.unitType] || product.unitType,
+        product.stockQuantity,
+        product.isActive ? 'Активен' : 'Неактивен',
+        Number(soldQty.toFixed(2)),
+        Number(revenue.toFixed(2)),
+        Number(stockValue.toFixed(2)),
+        Number(revenue.toFixed(2)),
+      ]
+    })
+
+    const thStyle = 'border:1px solid #9bb0c9;padding:8px;background:#1a5276;color:#fff;font-weight:700;white-space:nowrap;'
+    const tdStyle = 'border:1px solid #cfdbe8;padding:8px;'
+    const tdNumStyle = 'border:1px solid #cfdbe8;padding:8px;text-align:right;'
+
+    const headerRow = `<tr>${headers.map((h) => `<th style="${thStyle}">${h}</th>`).join('')}</tr>`
+    const dataRows = rows.map((row) =>
+      `<tr>${row.map((cell, i) =>
+        `<td style="${i >= 9 ? tdNumStyle : tdStyle}">${cell}</td>`
+      ).join('')}</tr>`
+    ).join('')
+
+    const totalRevenue = rows.reduce((s, r) => s + r[10], 0)
+    const totalStock = rows.reduce((s, r) => s + r[11], 0)
+    const totalProfit = rows.reduce((s, r) => s + r[12], 0)
+    const totalRow = `<tr>
+      <td colspan="9" style="${tdStyle}font-weight:700;">Итого (${freshProducts.length} товаров)</td>
+      <td style="${tdNumStyle}font-weight:700;"></td>
+      <td style="${tdNumStyle}font-weight:700;">${Number(totalRevenue.toFixed(2))}</td>
+      <td style="${tdNumStyle}font-weight:700;">${Number(totalStock.toFixed(2))}</td>
+      <td style="${tdNumStyle}font-weight:700;">${Number(totalProfit.toFixed(2))}</td>
+    </tr>`
+
+    const html = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+        <head><meta charset="utf-8" /></head>
+        <body>
+          <table style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:13px;">
+            ${headerRow}${dataRows}${totalRow}
+          </table>
+        </body>
+      </html>
+    `
+
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    const date = new Date().toLocaleDateString('ru-RU').replace(/\./g, '-')
+    link.download = `tovary_${date}.xls`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   const deleteAdminProduct = async (productId) => {
     const token = localStorage.getItem('lorefit_token')
     if (!token) {
@@ -799,6 +980,36 @@ function App() {
       await refreshProducts()
     } catch (error) {
       setAdminError('Не удалось удалить товар.')
+    }
+  }
+
+  const deleteAdminOrder = async (orderId) => {
+    const token = localStorage.getItem('lorefit_token')
+    if (!token) {
+      setAdminError('Войдите как администратор.')
+      return
+    }
+
+    setAdminError('')
+    setAdminSuccess('')
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/admin/orders/${orderId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to delete order')
+      }
+
+      setAdminSuccess('Заказ удалён.')
+      setAdminDeleteOrderId(null)
+      await loadAdminData()
+    } catch (error) {
+      setAdminError('Не удалось удалить заказ.')
     }
   }
 
@@ -1149,28 +1360,32 @@ function App() {
               </button>
               {authUser && (
                 <button
-                  className="nav-link-button"
+                  className="nav-link-button nav-link-button--notify"
                   type="button"
                   onClick={() => {
+                    setNewOrderNotification(false)
                     setCurrentPage('account')
                     loadOrdersData()
                   }}
                 >
                   Личный кабинет
+                  {newOrderNotification && <span className="nav-notify-dot" />}
                 </button>
               )}
-              <button
-                className="nav-link-button nav-cart-button"
-                type="button"
-                aria-label={`Корзина, товаров: ${cartItemsCount}`}
-                onClick={() => setCurrentPage('cart')}
-              >
-                <span className="nav-cart-icon" aria-hidden="true">
-                  🛒
-                </span>
-                <span className="nav-cart-label">Корзина</span>
-                <span className="nav-cart-count">{cartItemsCount}</span>
-              </button>
+              {authUser && (
+                <button
+                  className="nav-link-button nav-cart-button"
+                  type="button"
+                  aria-label={`Корзина, товаров: ${cartItemsCount}`}
+                  onClick={() => setCurrentPage('cart')}
+                >
+                  <span className="nav-cart-icon" aria-hidden="true">
+                    🛒
+                  </span>
+                  <span className="nav-cart-label">Корзина</span>
+                  <span className="nav-cart-count">{cartItemsCount}</span>
+                </button>
+              )}
             </div>
             {authUser ? (
               <div className="auth-nav">
@@ -1198,6 +1413,12 @@ function App() {
             )}
           </nav>
         </header>
+
+        {cartAuthToast && (
+          <div className="cart-auth-toast">
+            Авторизуйтесь, чтобы добавить товар в корзину
+          </div>
+        )}
 
         <main>
           <section className="section container shop-page-container">
@@ -1264,7 +1485,7 @@ function App() {
                 {sortedProducts.map((product) => (
                   <article
                     key={product.id}
-                    className="product-card product-card-clickable"
+                    className={`product-card product-card-clickable${product.useDiscount ? ' product-card--has-discount' : ''}`}
                     role="button"
                     tabIndex={0}
                     onClick={() => openProductDetails(product.id)}
@@ -1280,7 +1501,16 @@ function App() {
                     <p>{product.description}</p>
                     <div className="product-footer">
                       <div>
-                        <strong>{formatKzt(product.priceKzt)}</strong>
+                        {product.useDiscount ? (
+                          <>
+                            <div style={{ textDecoration: 'line-through', fontSize: '0.8em', color: '#888' }}>
+                              {formatKzt(product.priceKzt)}
+                            </div>
+                            <strong style={{ color: 'red' }}>{formatKzt(product.discountPriceKzt)}</strong>
+                          </>
+                        ) : (
+                          <strong>{formatKzt(product.priceKzt)}</strong>
+                        )}
                         <small>за {unitLabels[getProductUnitType(product)]}</small>
                       </div>
                       <button
@@ -1311,6 +1541,7 @@ function App() {
 
   if (currentPage === 'product-details' && selectedProduct) {
     return (
+      <>
       <div className="booking-page">
         <div className="booking-shell container">
           <button className="back-link" type="button" onClick={() => setCurrentPage('shop')}>
@@ -1333,9 +1564,19 @@ function App() {
               </div>
               <div className="summary-row">
                 <span>Цена</span>
-                <strong>{formatKzt(selectedProduct.priceKzt)} за {unitLabels[getProductUnitType(selectedProduct)]}</strong>
-              </div>
-              <div className="summary-row">
+                {selectedProduct.useDiscount ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                    <span style={{ textDecoration: 'line-through', fontSize: '0.8em', color: '#888' }}>
+                      {formatKzt(selectedProduct.priceKzt)}
+                    </span>
+                    <strong style={{ color: 'red' }}>
+                      {formatKzt(selectedProduct.discountPriceKzt)} за {unitLabels[getProductUnitType(selectedProduct)]}
+                    </strong>
+                  </div>
+                ) : (
+                  <strong>{formatKzt(selectedProduct.priceKzt)} за {unitLabels[getProductUnitType(selectedProduct)]}</strong>
+                )}
+              </div>              <div className="summary-row">
                 <span>Единица измерения</span>
                 <strong>{unitLabels[getProductUnitType(selectedProduct)]}</strong>
               </div>
@@ -1366,6 +1607,12 @@ function App() {
           </section>
         </div>
       </div>
+      {cartAuthToast && (
+        <div className="cart-auth-toast">
+          Авторизуйтесь, чтобы добавить товар в корзину
+        </div>
+      )}
+      </>
     )
   }
 
@@ -1527,7 +1774,14 @@ function App() {
               Номер заказа: <strong>#{lastOrder?.id}</strong>
             </p>
             <p className="booking-text">Сумма: {formatKzt(lastOrder?.totalAmountKzt || 0)}</p>
-            <button className="primary" type="button" onClick={() => setCurrentPage('home')}>
+            <button
+              className="primary"
+              type="button"
+              onClick={() => {
+                setNewOrderNotification(true)
+                setCurrentPage('home')
+              }}
+            >
               Вернуться на главную
             </button>
           </section>
@@ -1549,8 +1803,16 @@ function App() {
               <button className="nav-link-button" type="button" onClick={() => setCurrentPage('shop')}>
                 Товары
               </button>
-              <button className="nav-link-button" type="button" onClick={() => setCurrentPage('account')}>
+              <button
+                className="nav-link-button nav-link-button--notify"
+                type="button"
+                onClick={() => {
+                  setNewOrderNotification(false)
+                  setCurrentPage('account')
+                }}
+              >
                 Личный кабинет
+                {newOrderNotification && <span className="nav-notify-dot" />}
               </button>
             </div>
             {authUser ? (
@@ -1584,14 +1846,16 @@ function App() {
                     Профиль пользователя
                   </button>
                   <button
-                    className={accountTab === 'active' ? 'slot active' : 'slot'}
+                    className={`${accountTab === 'active' ? 'slot active' : 'slot'} slot--notify`}
                     type="button"
                     onClick={() => {
+                      setNewOrderNotification(false)
                       setAccountTab('active')
                       loadOrdersData()
                     }}
                   >
                     Активные заказы
+                    {newOrderNotification && <span className="nav-notify-dot" />}
                   </button>
                   <button
                     className={accountTab === 'history' ? 'slot active' : 'slot'}
@@ -1751,11 +2015,14 @@ function App() {
                       Товары
                     </button>
                     <button
-                      className={adminTab === 'orders' ? 'slot active' : 'slot'}
+                      className={`${adminTab === 'orders' ? 'slot active' : 'slot'} slot--notify`}
                       type="button"
                       onClick={() => setAdminTab('orders')}
                     >
                       Заказы
+                      {adminNewOrdersCount > 0 && (
+                        <span className="nav-notify-badge">{adminNewOrdersCount}</span>
+                      )}
                     </button>
                   </div>
                   <button className="secondary" type="button" onClick={loadAdminData}>
@@ -1855,7 +2122,16 @@ function App() {
                               <h3>{product.name}</h3>
                               <p>ID: {product.id}</p>
                               <p>Категория: {categoryLabels[product.category] || product.category}</p>
-                              <p>Цена: {formatKzt(product.priceKzt)}</p>
+                              <p>Цена: {product.useDiscount ? (
+                                <>
+                                  <span style={{ textDecoration: 'line-through', color: '#888', marginRight: '0.4em' }}>
+                                    {formatKzt(product.priceKzt)}
+                                  </span>
+                                  <span style={{ color: 'red', fontWeight: 'bold' }}>
+                                    {formatKzt(product.discountPriceKzt)}
+                                  </span>
+                                </>
+                              ) : formatKzt(product.priceKzt)}</p>
                               <p>Остаток: {product.stockQuantity} шт.</p>
                               <p>Статус: {product.isActive ? 'Активен' : 'Неактивен'}</p>
                             </div>
@@ -1877,6 +2153,21 @@ function App() {
                           <p className="booking-text">Товары не найдены.</p>
                         )}
                       </div>
+
+                      {adminProducts.length > 0 && (
+                        <div className="admin-products-footer">
+                          <span className="admin-products-total">
+                            Всего товаров: <strong>{adminProducts.length}</strong>
+                          </span>
+                          <button
+                            className="secondary"
+                            type="button"
+                            onClick={exportAllProductsToExcel}
+                          >
+                            Выгрузить все товары в Excel
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1976,6 +2267,31 @@ function App() {
                     </div>
 
                     <div className="admin-main admin-main-wide">
+                      <div className="order-stats-grid">
+                        <div className="order-stat-card">
+                          <span className="order-stat-label">Всего заказов</span>
+                          <strong className="order-stat-value">{orderStats.total}</strong>
+                        </div>
+                        <div className="order-stat-card order-stat-card--active">
+                          <span className="order-stat-label">Активных</span>
+                          <strong className="order-stat-value">{orderStats.active}</strong>
+                        </div>
+                        <div className="order-stat-card order-stat-card--done">
+                          <span className="order-stat-label">Завершённых</span>
+                          <strong className="order-stat-value">{orderStats.completed}</strong>
+                        </div>
+                        <div className="order-stat-card order-stat-card--cancelled">
+                          <span className="order-stat-label">Отменённых</span>
+                          <strong className="order-stat-value">{orderStats.cancelled}</strong>
+                        </div>
+                        <div className="order-stat-card order-stat-card--revenue">
+                          <span className="order-stat-label">Выручка (завершённые)</span>
+                          <strong className="order-stat-value">{formatKzt(orderStats.revenue)}</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="admin-main admin-main-wide">
                       <h2 className="account-subtitle">Список заказов</h2>
                       <div className="cart-list admin-products-list">
                         {filteredAdminOrders.map((order) => (
@@ -2008,6 +2324,13 @@ function App() {
                               >
                                 Изменить статус
                               </button>
+                              <button
+                                className="secondary"
+                                type="button"
+                                onClick={() => setAdminDeleteOrderId(order.id)}
+                              >
+                                Удалить
+                              </button>
                             </div>
                           </article>
                         ))}
@@ -2016,6 +2339,56 @@ function App() {
                         )}
                       </div>
                     </div>
+
+                    {adminHistoryOrders.length > 0 && (
+                      <div className="admin-main admin-main-wide">
+                        <h2 className="account-subtitle">История заказов</h2>
+                        <p className="booking-text" style={{ marginTop: 0 }}>
+                          Завершённые и отменённые заказы — {adminHistoryOrders.length} шт.
+                        </p>
+                        <div className="order-history-table-wrap">
+                          <table className="order-history-table">
+                            <thead>
+                              <tr>
+                                <th>№</th>
+                                <th>Дата</th>
+                                <th>Статус</th>
+                                <th>Получение</th>
+                                <th>Состав</th>
+                                <th>Сумма</th>
+                                <th></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {adminHistoryOrders.map((order) => (
+                                <tr key={`history-${order.id}`} className={order.status === 'cancelled' ? 'order-history-row--cancelled' : 'order-history-row--done'}>
+                                  <td>#{order.id}</td>
+                                  <td style={{ whiteSpace: 'nowrap' }}>{new Date(order.createdAt).toLocaleString('ru-RU')}</td>
+                                  <td>
+                                    <span className={`order-history-badge order-history-badge--${order.status}`}>
+                                      {orderStatusLabels[order.status]}
+                                    </span>
+                                  </td>
+                                  <td>{order.fulfillmentType === 'delivery' ? `Доставка${order.deliveryAddress ? ': ' + order.deliveryAddress : ''}` : 'Самовывоз'}</td>
+                                  <td>{(order.items || []).map((i) => `${i.name} × ${i.quantity}`).join(', ')}</td>
+                                  <td style={{ whiteSpace: 'nowrap', fontWeight: 600 }}>{formatKzt(order.totalAmountKzt)}</td>
+                                  <td>
+                                    <button
+                                      className="secondary"
+                                      type="button"
+                                      style={{ padding: '0.3rem 0.7rem', fontSize: '0.82rem' }}
+                                      onClick={() => setAdminDeleteOrderId(order.id)}
+                                    >
+                                      Удалить
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -2107,6 +2480,34 @@ function App() {
                           </div>
                         </div>
 
+                        <div className="admin-price-grid">
+                          <div>
+                            <label className="field-label" htmlFor="admin-discount-price">
+                              Цена со скидкой (₸)
+                            </label>
+                            <input
+                              className="date-input"
+                              id="admin-discount-price"
+                              name="discountPriceKzt"
+                              type="number"
+                              min="0"
+                              value={adminProductForm.discountPriceKzt}
+                              onChange={updateAdminProductForm}
+                            />
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: '10px' }}>
+                            <label className="admin-checkbox" style={{ marginBottom: 0 }}>
+                              <input
+                                type="checkbox"
+                                name="useDiscount"
+                                checked={adminProductForm.useDiscount}
+                                onChange={updateAdminProductForm}
+                              />
+                              Использовать скидку
+                            </label>
+                          </div>
+                        </div>
+
                         <div className="admin-price-preview">
                           <div className="summary-row">
                             <span>Цена с надбавкой</span>
@@ -2151,17 +2552,74 @@ function App() {
                           <option value="g">г (граммы)</option>
                         </select>
 
-                        <label className="field-label" htmlFor="admin-images">
-                          Изображения (через запятую)
-                        </label>
-                        <input
-                          className="date-input"
-                          id="admin-images"
-                          name="imageUrlsText"
-                          type="text"
-                          value={adminProductForm.imageUrlsText}
-                          onChange={updateAdminProductForm}
-                        />
+                        <label className="field-label">Изображения</label>
+
+                        {adminProductForm.imageUrlsText && (
+                          <div className="admin-image-previews">
+                            {adminProductForm.imageUrlsText
+                              .split(',')
+                              .map((url) => url.trim())
+                              .filter(Boolean)
+                              .map((url, idx) => (
+                                <div key={idx} className="admin-image-preview-wrap">
+                                  <img
+                                    className="admin-image-preview"
+                                    src={url}
+                                    alt={`Изображение ${idx + 1}`}
+                                  />
+                                  <button
+                                    className="admin-image-remove"
+                                    type="button"
+                                    title="Удалить"
+                                    onClick={() => {
+                                      const urls = adminProductForm.imageUrlsText
+                                        .split(',')
+                                        .map((u) => u.trim())
+                                        .filter((u, i) => u && i !== idx)
+                                      setAdminProductForm((prev) => ({
+                                        ...prev,
+                                        imageUrlsText: urls.join(', '),
+                                      }))
+                                    }}
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                          </div>
+                        )}
+
+                        <div className="admin-image-upload-row">
+                          <input
+                            className="date-input"
+                            id="admin-images"
+                            name="imageUrlsText"
+                            type="text"
+                            placeholder="Вставьте URL или загрузите файл"
+                            value={adminProductForm.imageUrlsText}
+                            onChange={updateAdminProductForm}
+                          />
+                          <input
+                            id="admin-image-file"
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            onChange={(e) => {
+                              if (e.target.files?.[0]) {
+                                uploadProductImage(e.target.files[0])
+                                e.target.value = ''
+                              }
+                            }}
+                          />
+                          <button
+                            className="secondary"
+                            type="button"
+                            disabled={imageUploading}
+                            onClick={() => document.getElementById('admin-image-file').click()}
+                          >
+                            {imageUploading ? 'Загрузка…' : 'С устройства'}
+                          </button>
+                        </div>
 
                         <label className="admin-checkbox">
                           <input
@@ -2199,6 +2657,23 @@ function App() {
                           Да, удалить
                         </button>
                         <button className="secondary" type="button" onClick={() => setAdminDeleteProductId(null)}>
+                          Отмена
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {adminDeleteOrderId !== null && (
+                  <div className="admin-modal-overlay" role="dialog" aria-modal="true">
+                    <div className="admin-modal-card small">
+                      <h2>Подтверждение удаления</h2>
+                      <p className="booking-text">Вы уверены, что хотите удалить заказ #{adminDeleteOrderId}? Это действие необратимо.</p>
+                      <div className="admin-actions">
+                        <button className="primary" type="button" onClick={() => deleteAdminOrder(adminDeleteOrderId)}>
+                          Да, удалить
+                        </button>
+                        <button className="secondary" type="button" onClick={() => setAdminDeleteOrderId(null)}>
                           Отмена
                         </button>
                       </div>
@@ -2255,22 +2730,21 @@ function App() {
         <nav className="nav container">
           <div className="brand">Для Народа</div>
           <div className="nav-links">
-            <a className="nav-link-button" href="#products">Товары</a>
-            <a className="nav-link-button" href="#about">О магазине</a>
-            <a className="nav-link-button" href="#reviews">Отзывы</a>
             <button className="nav-link-button" type="button" onClick={() => setCurrentPage('shop')}>
               Магазин
             </button>
             {authUser && (
               <button
-                className="nav-link-button"
+                className="nav-link-button nav-link-button--notify"
                 type="button"
                 onClick={() => {
+                  setNewOrderNotification(false)
                   setCurrentPage('account')
                   loadOrdersData()
                 }}
               >
                 Личный кабинет
+                {newOrderNotification && <span className="nav-notify-dot" />}
               </button>
             )}
             <button
@@ -2315,7 +2789,7 @@ function App() {
         <div className="hero-content container">
           <div>
             <p className="badge">Маркетплэйс продуктов и товаров</p>
-            <h1>Все необходимое для вашего дома в одном месте</h1>
+            <h1>Все необходимое для вашего дома</h1>
             <p className="hero-text">
               Широкий ассортимент овощей, фруктов и бытовой химии. Быстрая доставка и качественные товары для вашего дома.
             </p>
@@ -2346,10 +2820,19 @@ function App() {
           </div>
           <div className="grid cards-4">
             {products.slice(0, 4).map((product) => (
-              <article key={product.id} className="card-item">
+              <article key={product.id} className={`card-item${product.useDiscount ? ' card-item--has-discount' : ''}`}>
                 <h3>{product.name}</h3>
                 <p>{product.description}</p>
-                <span>{formatKzt(product.priceKzt)}</span>
+                {product.useDiscount ? (
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ textDecoration: 'line-through', fontSize: '0.8em', color: '#888' }}>
+                      {formatKzt(product.priceKzt)}
+                    </span>
+                    <span style={{ color: 'red', fontWeight: 'bold' }}>{formatKzt(product.discountPriceKzt)}</span>
+                  </div>
+                ) : (
+                  <span>{formatKzt(product.priceKzt)}</span>
+                )}
                 <button
                   className="primary category-buy-button"
                   type="button"

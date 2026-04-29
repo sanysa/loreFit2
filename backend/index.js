@@ -3,8 +3,28 @@ const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const path = require("path");
+const fs = require("fs");
+const multer = require("multer");
 const { pool } = require("./db/pool");
 const { runMigrations } = require("./db/migrate");
+
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, uploadsDir),
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase() || ".jpg";
+    cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
+  },
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    cb(null, file.mimetype.startsWith("image/"));
+  },
+});
 
 const app = express();
 const port = process.env.PORT || 5001;
@@ -106,6 +126,8 @@ function mapProductRow(row) {
     category: row.category,
     description: row.description,
     priceKzt: Number(row.price_kzt),
+    discountPriceKzt: Number(row.discount_price_kzt || 0),
+    useDiscount: row.use_discount || false,
     stockQuantity: Number(row.stock_quantity),
     unitType: row.unit_type || "piece",
     imageUrls: row.image_urls || [],
@@ -141,6 +163,8 @@ function normalizeProductPayload(body) {
     category: normalizedCategory,
     description: String(body.description || "").trim(),
     priceKzt: Number(body.priceKzt),
+    discountPriceKzt: Number(body.discountPriceKzt || 0),
+    useDiscount: Boolean(body.useDiscount),
     stockQuantity: Number(body.stockQuantity),
     unitType: String(body.unitType || "piece").trim(),
     imageUrls,
@@ -174,7 +198,7 @@ app.get("/api/products", async (req, res) => {
     const result = await pool.query(
       `
         SELECT id, name, created_at, category, description, price_kzt, stock_quantity, image_urls, is_active
-             , unit_type
+             , unit_type, discount_price_kzt, use_discount
         FROM products
         WHERE name <> ALL($1::text[])
         ORDER BY id ASC
@@ -202,7 +226,7 @@ app.get("/api/products/:id", async (req, res) => {
     const result = await pool.query(
       `
         SELECT id, name, created_at, category, description, price_kzt, stock_quantity, image_urls, is_active
-             , unit_type
+             , unit_type, discount_price_kzt, use_discount
         FROM products
         WHERE id = $1
           AND name <> ALL($2::text[])
@@ -230,7 +254,7 @@ app.get("/api/admin/products", requireAdmin, async (req, res) => {
     const result = await pool.query(
       `
         SELECT id, name, created_at, category, description, price_kzt, stock_quantity, image_urls, is_active
-             , unit_type
+             , unit_type, discount_price_kzt, use_discount
         FROM products
         WHERE name <> ALL($1::text[])
         ORDER BY id DESC
@@ -266,9 +290,9 @@ app.post("/api/admin/products", requireAdmin, async (req, res) => {
   try {
     const result = await pool.query(
       `
-        INSERT INTO products (name, category, description, price_kzt, stock_quantity, unit_type, image_urls, is_active)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING id, name, created_at, category, description, price_kzt, stock_quantity, unit_type, image_urls, is_active
+        INSERT INTO products (name, category, description, price_kzt, stock_quantity, unit_type, image_urls, is_active, discount_price_kzt, use_discount)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        RETURNING id, name, created_at, category, description, price_kzt, stock_quantity, unit_type, image_urls, is_active, discount_price_kzt, use_discount
       `,
       [
         payload.name,
@@ -279,6 +303,8 @@ app.post("/api/admin/products", requireAdmin, async (req, res) => {
         payload.unitType,
         payload.imageUrls,
         payload.isActive,
+        payload.discountPriceKzt,
+        payload.useDiscount,
       ]
     );
 
@@ -325,9 +351,11 @@ app.put("/api/admin/products/:id", requireAdmin, async (req, res) => {
           stock_quantity = $5,
           unit_type = $6,
           image_urls = $7,
-          is_active = $8
-        WHERE id = $9
-        RETURNING id, name, created_at, category, description, price_kzt, stock_quantity, unit_type, image_urls, is_active
+          is_active = $8,
+          discount_price_kzt = $9,
+          use_discount = $10
+        WHERE id = $11
+        RETURNING id, name, created_at, category, description, price_kzt, stock_quantity, unit_type, image_urls, is_active, discount_price_kzt, use_discount
       `,
       [
         payload.name,
@@ -338,6 +366,8 @@ app.put("/api/admin/products/:id", requireAdmin, async (req, res) => {
         payload.unitType,
         payload.imageUrls,
         payload.isActive,
+        payload.discountPriceKzt,
+        payload.useDiscount,
         productId,
       ]
     );
@@ -360,25 +390,33 @@ app.delete("/api/admin/products/:id", requireAdmin, async (req, res) => {
     return res.status(400).json({ message: "Invalid product id" });
   }
 
+  const client = await pool.connect();
   try {
-    const result = await pool.query(
-      `
-        UPDATE products
-        SET is_active = FALSE
-        WHERE id = $1
-        RETURNING id
-      `,
+    await client.query("BEGIN");
+
+    const check = await client.query(
+      "SELECT id FROM products WHERE id = $1",
       [productId]
     );
-
-    if (result.rows.length === 0) {
+    if (check.rows.length === 0) {
+      await client.query("ROLLBACK");
       return res.status(404).json({ message: "Product not found" });
     }
 
+    await client.query(
+      "DELETE FROM order_items WHERE product_id = $1",
+      [productId]
+    );
+    await client.query("DELETE FROM products WHERE id = $1", [productId]);
+
+    await client.query("COMMIT");
     return res.json({ message: "Product deleted" });
   } catch (error) {
+    await client.query("ROLLBACK");
     console.error("Admin product delete error:", error);
     return res.status(500).json({ message: "Internal server error" });
+  } finally {
+    client.release();
   }
 });
 
@@ -478,6 +516,43 @@ app.patch("/api/admin/orders/:id/status", requireAdmin, async (req, res) => {
   }
 });
 
+app.delete("/api/admin/orders/:id", requireAdmin, async (req, res) => {
+  const orderId = Number(req.params.id);
+
+  if (!Number.isInteger(orderId) || orderId <= 0) {
+    return res.status(400).json({ message: "Invalid order id" });
+  }
+
+  try {
+    const result = await pool.query(
+      `DELETE FROM orders WHERE id = $1 RETURNING id`,
+      [orderId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    return res.json({ message: "Order deleted" });
+  } catch (error) {
+    console.error("Admin order delete error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+app.post(
+  "/api/admin/upload-image",
+  requireAdmin,
+  upload.single("image"),
+  (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ message: "No image file provided" });
+    }
+    const url = `/uploads/${req.file.filename}`;
+    return res.json({ url });
+  }
+);
+
 app.post("/api/orders", async (req, res) => {
   const { items, fulfillmentType, deliveryAddress } = req.body;
 
@@ -518,7 +593,7 @@ app.post("/api/orders", async (req, res) => {
   try {
     const productsResult = await client.query(
       `
-        SELECT id, name, price_kzt, stock_quantity, is_active
+        SELECT id, name, price_kzt, stock_quantity, is_active, discount_price_kzt, use_discount
         FROM products
         WHERE id = ANY($1::int[])
         FOR UPDATE
@@ -543,10 +618,12 @@ app.post("/api/orders", async (req, res) => {
         throw new Error(`Not enough stock for product ${product.id}`);
       }
 
+      const finalPrice = product.use_discount ? Number(product.discount_price_kzt) : Number(product.price_kzt);
+
       return {
         productId: product.id,
         productName: product.name,
-        priceKzt: Number(product.price_kzt),
+        priceKzt: finalPrice,
         quantity: item.quantity,
       };
     });
@@ -965,6 +1042,8 @@ app.delete("/api/account", requireAuth, async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+
+app.use("/uploads", express.static(uploadsDir));
 
 const frontendDist = path.join(__dirname, "../frontend/dist");
 app.use(express.static(frontendDist));
