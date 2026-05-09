@@ -13,21 +13,39 @@
   padding-bottom: 4rem;
 }
 
-.hero::before {
+.hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Kazakh ornament — only on home hero, left and right strips */
+.hero:not(.shop-hero)::before,
+.hero:not(.shop-hero)::after {
   content: '';
   position: absolute;
-  inset: 0;
-  background-image: url('/kazakh-pattern.svg');
-  background-repeat: repeat;
-  background-size: 160px 160px;
-  opacity: 0.45;
+  top: 0;
+  bottom: 0;
+  width: 140px;
+  background-image: url('/kazakh-border.svg');
+  background-repeat: repeat-y;
+  background-size: 120px auto;
+  opacity: 0.22;
   pointer-events: none;
   z-index: 0;
 }
 
-.hero > * {
-  position: relative;
-  z-index: 1;
+.hero:not(.shop-hero)::before {
+  left: 0;
+  background-position: left center;
+  -webkit-mask-image: linear-gradient(to right, black 55%, transparent 100%);
+  mask-image: linear-gradient(to right, black 55%, transparent 100%);
+}
+
+.hero:not(.shop-hero)::after {
+  right: 0;
+  background-position: right center;
+  -webkit-mask-image: linear-gradient(to left, black 55%, transparent 100%);
+  mask-image: linear-gradient(to left, black 55%, transparent 100%);
 }
 
 .shop-hero {

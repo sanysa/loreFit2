@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="240" viewBox="0 0 120 240">
+  <!-- Outer border lines -->
+  <line x1="8"   y1="0" x2="8"   y2="240" stroke="#0f4f8c" stroke-width="2.2"/>
+  <line x1="112" y1="0" x2="112" y2="240" stroke="#0f4f8c" stroke-width="2.2"/>
+  <!-- Inner border lines -->
+  <line x1="16"  y1="0" x2="16"  y2="240" stroke="#0f4f8c" stroke-width="0.9"/>
+  <line x1="104" y1="0" x2="104" y2="240" stroke="#0f4f8c" stroke-width="0.9"/>
+
+  <!-- ── MOTIF 1 centred at y=60 ── -->
+  <polygon points="60,34 86,60 60,86 34,60" fill="none" stroke="#0f4f8c" stroke-width="1.8"/>
+  <polygon points="60,44 74,60 60,76 46,60" fill="none" stroke="#0f4f8c" stroke-width="1.1"/>
+  <polygon points="60,55 65,60 60,65 55,60" fill="#0f4f8c"/>
+
+  <!-- Ram horn – top left -->
+  <path d="M34,60 C26,50 20,40 28,32 C33,26 42,29 39,38" fill="none" stroke="#0f4f8c" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Ram horn – top right -->
+  <path d="M86,60 C94,50 100,40 92,32 C87,26 78,29 81,38" fill="none" stroke="#0f4f8c" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Ram horn – bottom left -->
+  <path d="M34,60 C26,70 20,80 28,88 C33,94 42,91 39,82" fill="none" stroke="#0f4f8c" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Ram horn – bottom right -->
+  <path d="M86,60 C94,70 100,80 92,88 C87,94 78,91 81,82" fill="none" stroke="#0f4f8c" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Border diamonds at y=60 -->
+  <polygon points="8,56  12,60  8,64  4,60"   fill="#0f4f8c"/>
+  <polygon points="112,56 116,60 112,64 108,60" fill="#0f4f8c"/>
+
+  <!-- Connector top of motif 1 -->
+  <line x1="60" y1="0"  x2="60" y2="34" stroke="#0f4f8c" stroke-width="1.1"/>
+  <polyline points="56,14 60,10 64,14" fill="none" stroke="#0f4f8c" stroke-width="1.3"/>
+  <!-- Connector between motifs -->
+  <line x1="60" y1="86" x2="60" y2="154" stroke="#0f4f8c" stroke-width="1.1"/>
+  <polyline points="56,106 60,102 64,106" fill="none" stroke="#0f4f8c" stroke-width="1.3"/>
+  <polyline points="56,122 60,118 64,122" fill="none" stroke="#0f4f8c" stroke-width="1.3"/>
+  <polyline points="56,138 60,134 64,138" fill="none" stroke="#0f4f8c" stroke-width="1.3"/>
+
+  <!-- ── MOTIF 2 centred at y=180 ── -->
+  <polygon points="60,154 86,180 60,206 34,180" fill="none" stroke="#0f4f8c" stroke-width="1.8"/>
+  <polygon points="60,164 74,180 60,196 46,180" fill="none" stroke="#0f4f8c" stroke-width="1.1"/>
+  <polygon points="60,175 65,180 60,185 55,180" fill="#0f4f8c"/>
+
+  <!-- Ram horn – top left -->
+  <path d="M34,180 C26,170 20,160 28,152 C33,146 42,149 39,158" fill="none" stroke="#0f4f8c" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Ram horn – top right -->
+  <path d="M86,180 C94,170 100,160 92,152 C87,146 78,149 81,158" fill="none" stroke="#0f4f8c" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Ram horn – bottom left -->
+  <path d="M34,180 C26,190 20,200 28,208 C33,214 42,211 39,202" fill="none" stroke="#0f4f8c" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Ram horn – bottom right -->
+  <path d="M86,180 C94,190 100,200 92,208 C87,214 78,211 81,202" fill="none" stroke="#0f4f8c" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Border diamonds at y=180 -->
+  <polygon points="8,176  12,180  8,184  4,180"   fill="#0f4f8c"/>
+  <polygon points="112,176 116,180 112,184 108,180" fill="#0f4f8c"/>
+
+  <!-- Connector bottom of motif 2 -->
+  <line x1="60" y1="206" x2="60" y2="240" stroke="#0f4f8c" stroke-width="1.1"/>
+  <polyline points="56,226 60,222 64,226" fill="none" stroke="#0f4f8c" stroke-width="1.3"/>
+
+  <!-- Tile-edge diamonds (seamless repeat) -->
+  <polygon points="60,0  64,4  60,8  56,4"   fill="#0f4f8c"/>
+  <polygon points="60,232 64,236 60,240 56,236" fill="#0f4f8c"/>
+</svg>
