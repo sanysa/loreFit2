@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 5001
 
-CMD ["node", "index.js"]
+CMD ["sh", "-c", "node db/migrate.js && node index.js"]

@@ -202,7 +202,7 @@ app.get("/api/products", async (req, res) => {
     const result = await pool.query(
       `
         SELECT id, name, created_at, category, description, price_kzt, stock_quantity, image_urls, is_active
-             , unit_type, discount_price_kzt, use_discount
+             , unit_type, discount_price_kzt, use_discount, barcode, base_price_kzt
         FROM products
         WHERE name <> ALL($1::text[])
         ORDER BY id ASC
@@ -230,7 +230,7 @@ app.get("/api/products/:id", async (req, res) => {
     const result = await pool.query(
       `
         SELECT id, name, created_at, category, description, price_kzt, stock_quantity, image_urls, is_active
-             , unit_type, discount_price_kzt, use_discount
+             , unit_type, discount_price_kzt, use_discount, barcode, base_price_kzt
         FROM products
         WHERE id = $1
           AND name <> ALL($2::text[])
@@ -258,7 +258,7 @@ app.get("/api/admin/products", requireAdmin, async (req, res) => {
     const result = await pool.query(
       `
         SELECT id, name, created_at, category, description, price_kzt, stock_quantity, image_urls, is_active
-             , unit_type, discount_price_kzt, use_discount, barcode
+             , unit_type, discount_price_kzt, use_discount, barcode, base_price_kzt
         FROM products
         WHERE name <> ALL($1::text[])
         ORDER BY id DESC
