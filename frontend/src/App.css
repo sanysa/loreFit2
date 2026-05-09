@@ -25,9 +25,9 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 140px;
+  width: clamp(36px, 10vw, 140px);
   background-repeat: repeat-y;
-  background-size: 130px auto;
+  background-size: 100% auto;
   opacity: 0.2;
   pointer-events: none;
   z-index: 0;
@@ -57,9 +57,9 @@
   position: fixed;
   top: 0;
   bottom: 0;
-  width: 130px;
+  width: clamp(32px, 9vw, 130px);
   background-repeat: repeat-y;
-  background-size: 130px auto;
+  background-size: 100% auto;
   opacity: 0.18;
   pointer-events: none;
   z-index: 1;
@@ -1320,9 +1320,6 @@ h1 {
 
 /* --- 1024px: large tablet ---------------------------------- */
 @media (max-width: 1024px) {
-  .kaz-ornament { width: 90px; background-size: 90px auto; }
-  .hero:not(.shop-hero)::before,
-  .hero:not(.shop-hero)::after { width: 100px; background-size: 100px auto; }
 
   .admin-filters-grid,
   .admin-filters-grid-orders { grid-template-columns: repeat(2, 1fr); }
@@ -1333,11 +1330,6 @@ h1 {
 
 /* --- 768px: tablet ---------------------------------------- */
 @media (max-width: 768px) {
-  /* hide ornaments — they eat ~260px on narrow screens */
-  .kaz-ornament { display: none; }
-  .hero:not(.shop-hero)::before,
-  .hero:not(.shop-hero)::after { display: none; }
-
   /* nav */
   .nav { padding: 0.75rem 0; gap: 0.5rem; }
   .nav-links { gap: 0.5rem; }
