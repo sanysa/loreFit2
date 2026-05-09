@@ -97,7 +97,7 @@
 }
 
 .brand-logo {
-  height: 164px;
+  height: clamp(56px, 12vw, 164px);
   width: auto;
   display: block;
   object-fit: contain;
@@ -441,61 +441,7 @@ h1 {
 }
 
 @media (max-width: 680px) {
-  .nav {
-    flex-wrap: wrap;
-    align-items: flex-start;
-  }
-
-  .nav-links {
-    width: 100%;
-    order: 3;
-    overflow-x: auto;
-    padding-bottom: 0.3rem;
-    gap: 1rem;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .nav-links a,
-  .nav-link-button {
-    white-space: nowrap;
-    font-size: 0.95rem;
-  }
-
-  .nav-cart-label {
-    display: none;
-  }
-
-  .nav-cart-button {
-    gap: 0.3rem;
-  }
-
-  .nav-cart-icon {
-    font-size: 1.15rem;
-  }
-
-  .nav-button {
-    padding: 0.65rem 1rem;
-  }
-
-  .hero-content,
-  .cards-4,
-  .cards-3,
-  .cards-2 {
-    grid-template-columns: 1fr;
-  }
-
-  .hero {
-    padding-bottom: 2.5rem;
-  }
-
-  .hero-content {
-    margin-top: 1.25rem;
-    gap: 1rem;
-  }
-
-  .hero-card {
-    padding: 1rem;
-  }
+  .hero-card { padding: 1rem; }
 
   .hero-meta {
     flex-direction: column;
@@ -503,22 +449,8 @@ h1 {
     gap: 0.3rem;
   }
 
-  .hero-actions .primary,
-  .hero-actions .secondary {
-    width: 100%;
-  }
-
-  .section {
-    padding: 3rem 0;
-  }
-
-  .cta {
-    padding: 2rem 0;
-  }
-
-  .cta .primary {
-    width: 100%;
-  }
+  .section { padding: 3rem 0; }
+  .cta { padding: 2rem 0; }
 }
 
 .booking-page {
@@ -1145,74 +1077,12 @@ h1 {
 }
 
 @media (max-width: 680px) {
-  .booking-page {
-    padding: 1.25rem 0;
-  }
-
-  .booking-card,
-  .summary-card,
-  .auth-card,
-  .shop-card,
-  .product-card {
-    padding: 1rem;
-  }
-
-  .admin-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .account-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .admin-filters-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .shop-controls {
-    grid-template-columns: 1fr;
-  }
-
-  .slots {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .product-footer {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .product-image,
-  .product-detail-image {
-    height: 180px;
-  }
-
-  .cart-item {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .cart-item-controls {
-    justify-content: space-between;
-  }
-
-  .product-footer .primary {
-    width: 100%;
-  }
+  .auth-card { padding: 1rem; }
+  .product-card { padding: 0.85rem; }
 }
 
 @media (max-width: 420px) {
-  .container {
-    width: 94%;
-  }
-
-  .slot {
-    padding: 0.7rem 0.45rem;
-  }
-
-  .slots {
-    grid-template-columns: 1fr;
-  }
+  .slot { padding: 0.7rem 0.45rem; }
 }
 
 .nav-link-button--notify {
@@ -1442,5 +1312,172 @@ h1 {
 @keyframes toast-in {
   from { opacity: 0; transform: translateX(-50%) translateY(8px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ============================================================
+   RESPONSIVE — tablet / mobile
+   ============================================================ */
+
+/* --- 1024px: large tablet ---------------------------------- */
+@media (max-width: 1024px) {
+  .kaz-ornament { width: 90px; background-size: 90px auto; }
+  .hero:not(.shop-hero)::before,
+  .hero:not(.shop-hero)::after { width: 100px; background-size: 100px auto; }
+
+  .admin-filters-grid,
+  .admin-filters-grid-orders { grid-template-columns: repeat(2, 1fr); }
+
+  .admin-layout { grid-template-columns: 1fr; }
+  .account-layout { grid-template-columns: 200px 1fr; }
+}
+
+/* --- 768px: tablet ---------------------------------------- */
+@media (max-width: 768px) {
+  /* hide ornaments — they eat ~260px on narrow screens */
+  .kaz-ornament { display: none; }
+  .hero:not(.shop-hero)::before,
+  .hero:not(.shop-hero)::after { display: none; }
+
+  /* nav */
+  .nav { padding: 0.75rem 0; gap: 0.5rem; }
+  .nav-links { gap: 0.5rem; }
+
+  /* account sidebar goes horizontal */
+  .account-layout { grid-template-columns: 1fr; }
+  .account-sidebar {
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.25rem;
+  }
+
+  /* admin product rows: stack info + actions */
+  .admin-product-item { flex-wrap: wrap; }
+  .admin-actions.vertical {
+    flex-direction: row;
+    flex-wrap: wrap;
+    min-width: unset;
+    width: 100%;
+    margin-top: 0.6rem;
+  }
+  .admin-actions.vertical button { flex: 1 1 auto; min-width: 0; }
+  .admin-product-actions { min-width: unset; }
+
+  /* admin price grid: single column */
+  .admin-price-grid { grid-template-columns: 1fr; }
+
+  /* modal: slides up from bottom */
+  .admin-modal-overlay { padding: 0; align-items: flex-end; }
+  .admin-modal-card {
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+    max-height: 88vh;
+    padding: 1.25rem 1rem;
+  }
+  .admin-modal-card.small { width: 100%; }
+
+  /* order stats: revenue card no longer spans 2 */
+  .order-stat-card--revenue { grid-column: span 1; }
+
+  /* shop controls: already 1 col at 680 but also do it here */
+  .shop-controls { grid-template-columns: 1fr; }
+
+  /* checkout layout */
+  .booking-layout { grid-template-columns: 1fr; }
+}
+
+/* --- 480px: phone ----------------------------------------- */
+@media (max-width: 480px) {
+  .container { width: 95%; }
+
+  /* nav */
+  .nav { flex-wrap: wrap; padding: 0.6rem 0; }
+  .nav-links {
+    width: 100%;
+    order: 3;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.25rem;
+    gap: 0.4rem;
+    flex-wrap: nowrap;
+  }
+  .nav-link-button { padding: 0.6rem 0.75rem; font-size: 0.875rem; white-space: nowrap; }
+  .nav-button      { padding: 0.6rem 0.9rem;  font-size: 0.875rem; }
+  .nav-cart-label  { display: none; }
+
+  /* hero */
+  .hero { padding-bottom: 2rem; }
+  .hero-content { margin-top: 1rem; gap: 0.75rem; }
+
+  /* sections */
+  .section { padding: 2rem 0; }
+  .cta { padding: 1.75rem 0; }
+  .booking-page { padding: 0.75rem 0; }
+  .booking-card, .summary-card, .shop-card { padding: 0.9rem; }
+
+  /* grid columns */
+  .cards-4, .cards-3, .cards-2, .hero-content { grid-template-columns: 1fr; }
+
+  /* cart item */
+  .cart-item { flex-direction: column; align-items: stretch; gap: 0.6rem; }
+  .cart-item-controls { justify-content: space-between; }
+
+  /* quantity stepper: tighter on phone */
+  .quantity-stepper { grid-template-columns: 38px 56px 38px; gap: 0.3rem; }
+  .quantity-button  { width: 38px; min-width: 38px; height: 38px; flex: 0 0 38px; }
+  .quantity-display { width: 56px; min-width: 56px; flex: 0 0 56px; font-size: 0.9rem; }
+
+  /* product */
+  .product-image, .product-detail-image { height: 180px; }
+  .product-footer { flex-direction: column; align-items: stretch; }
+  .product-footer .primary, .product-footer .secondary { width: 100%; }
+
+  /* admin */
+  .admin-filters-grid,
+  .admin-filters-grid-orders { grid-template-columns: 1fr; }
+  .admin-page-head { flex-direction: column; align-items: stretch; }
+  .admin-tabs { width: 100%; }
+  .admin-products-footer { flex-direction: column; gap: 0.5rem; }
+
+  /* admin actions — full-width row */
+  .admin-actions.vertical button { padding: 0.6rem 0.75rem; font-size: 0.85rem; }
+
+  /* admin image upload row */
+  .admin-image-upload-row { flex-wrap: wrap; }
+  .admin-image-upload-row .date-input { width: 100%; }
+
+  /* CTA block */
+  .cta-inner { flex-direction: column; align-items: flex-start; }
+  .cta .primary { width: 100%; }
+
+  /* hero actions */
+  .hero-actions { flex-direction: column; }
+  .hero-actions .primary, .hero-actions .secondary { width: 100%; }
+
+  /* auth switch */
+  .auth-switch { grid-template-columns: 1fr; }
+
+  /* slots */
+  .slots { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* --- 360px: small phone ----------------------------------- */
+@media (max-width: 360px) {
+  .nav-link-button { padding: 0.55rem 0.6rem; font-size: 0.82rem; }
+  .nav-button      { padding: 0.55rem 0.75rem; }
+  .slots { grid-template-columns: 1fr; }
+  .admin-image-previews { gap: 0.35rem; }
+}
+
+/* touch: remove hover effects that look wrong on mobile */
+@media (hover: none) {
+  .shop-catalog .add-to-cart-button:hover:not(:disabled) {
+    transform: none;
+    box-shadow: 0 8px 18px rgba(15, 79, 140, 0.16);
+  }
+  .nav-link-button:hover,
+  .primary:hover,
+  .secondary:hover { opacity: 1; }
 }
 
