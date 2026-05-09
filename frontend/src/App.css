@@ -869,6 +869,7 @@ h1 {
 .admin-tabs {
   margin-top: 0;
   width: min(440px, 100%);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .admin-layout {
