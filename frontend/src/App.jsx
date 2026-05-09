@@ -2725,7 +2725,7 @@ function App() {
     <div className="page">
       <header className="hero">
         <nav className="nav container">
-          <div className="brand">Для Народа</div>
+          <div className="brand"><img src="/logo.jpeg" alt="Для Народа" className="brand-logo" /></div>
           <div className="nav-links">
             <button className="nav-link-button" type="button" onClick={() => setCurrentPage('shop')}>
               Магазин

@@ -97,10 +97,11 @@
 }
 
 .brand-logo {
-  height: 48px;
+  height: 72px;
   width: auto;
   display: block;
   object-fit: contain;
+  mix-blend-mode: multiply;
 }
 
 .nav-links {
