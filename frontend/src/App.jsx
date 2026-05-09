@@ -1345,7 +1345,7 @@ function App() {
         <div className="kaz-ornament kaz-ornament--right" aria-hidden="true" />
         <header className="hero shop-hero">
           <nav className="nav container shop-nav">
-            <div className="brand"><img src="/logo.jpeg" alt="Для Народа" className="brand-logo" /></div>
+            <div className="brand"><img src="/logo.png" alt="Для Народа" className="brand-logo" /></div>
             <div className="nav-links">
               <button className="nav-link-button" type="button" onClick={() => setCurrentPage('home')}>
                 Главная
@@ -1775,7 +1775,7 @@ function App() {
       <div className="page">
         <header className="hero shop-hero">
           <nav className="nav container shop-nav">
-            <div className="brand"><img src="/logo.jpeg" alt="Для Народа" className="brand-logo" /></div>
+            <div className="brand"><img src="/logo.png" alt="Для Народа" className="brand-logo" /></div>
             <div className="nav-links">
               <button className="nav-link-button" type="button" onClick={() => setCurrentPage('home')}>
                 Главная
@@ -2725,7 +2725,7 @@ function App() {
     <div className="page">
       <header className="hero">
         <nav className="nav container">
-          <div className="brand"><img src="/logo.jpeg" alt="Для Народа" className="brand-logo" /></div>
+          <div className="brand"><img src="/logo.png" alt="Для Народа" className="brand-logo" /></div>
           <div className="nav-links">
             <button className="nav-link-button" type="button" onClick={() => setCurrentPage('shop')}>
               Магазин
