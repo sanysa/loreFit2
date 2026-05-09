@@ -152,7 +152,7 @@ function App() {
     const raw = localStorage.getItem('lorefit_cart')
     return raw ? JSON.parse(raw) : []
   })
-  const [fulfillmentType, setFulfillmentType] = useState('pickup')
+  const fulfillmentType = 'delivery'
   const [deliveryAddress, setDeliveryAddress] = useState('')
   const [orderLoading, setOrderLoading] = useState(false)
   const [orderError, setOrderError] = useState('')
@@ -415,16 +415,11 @@ function App() {
   }, [products])
 
   useEffect(() => {
-    if (currentPage !== 'checkout' || fulfillmentType !== 'delivery') {
+    if (currentPage !== 'checkout' || deliveryAddress.trim() || !authUser) {
       return
     }
-
-    if (deliveryAddress.trim() || !authUser) {
-      return
-    }
-
     setDeliveryAddress([authUser.country, authUser.city].filter(Boolean).join(', '))
-  }, [currentPage, fulfillmentType, deliveryAddress, authUser])
+  }, [currentPage, deliveryAddress, authUser])
 
   useEffect(() => {
     if (recentlyAddedProductId === null) {
@@ -537,7 +532,7 @@ function App() {
       return
     }
 
-    if (fulfillmentType === 'delivery' && !deliveryAddress.trim()) {
+    if (!deliveryAddress.trim()) {
       setOrderError('Введите адрес доставки.')
       return
     }
@@ -1713,40 +1708,18 @@ function App() {
                 ))}
               </div>
 
-              <p className="field-label">Способ получения</p>
-              <div className="auth-switch">
-                <button
-                  className={fulfillmentType === 'pickup' ? 'slot active' : 'slot'}
-                  type="button"
-                  onClick={() => setFulfillmentType('pickup')}
-                >
-                  Самовывоз
-                </button>
-                <button
-                  className={fulfillmentType === 'delivery' ? 'slot active' : 'slot'}
-                  type="button"
-                  onClick={() => setFulfillmentType('delivery')}
-                >
-                  Доставка
-                </button>
-              </div>
-
-              {fulfillmentType === 'delivery' && (
-                <>
-                  <label className="field-label" htmlFor="delivery-address">
-                    Адрес доставки
-                  </label>
-                  <input
-                    className="date-input"
-                    id="delivery-address"
-                    type="text"
-                    value={deliveryAddress}
-                    onChange={(event) => setDeliveryAddress(event.target.value)}
-                    placeholder="Город, улица, дом, квартира"
-                    required
-                  />
-                </>
-              )}
+              <label className="field-label" htmlFor="delivery-address">
+                Адрес доставки
+              </label>
+              <input
+                className="date-input"
+                id="delivery-address"
+                type="text"
+                value={deliveryAddress}
+                onChange={(event) => setDeliveryAddress(event.target.value)}
+                placeholder="Город, улица, дом, квартира"
+                required
+              />
 
               {orderError && <p className="auth-error">{orderError}</p>}
             </section>
