@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="90" height="200" viewBox="0 0 90 200">
+  <!-- Outer frame lines -->
+  <line x1="6"  y1="0" x2="6"  y2="200" stroke="#0f4f8c" stroke-width="2.4"/>
+  <line x1="84" y1="0" x2="84" y2="200" stroke="#0f4f8c" stroke-width="2.4"/>
+  <!-- Inner thin lines -->
+  <line x1="13" y1="0" x2="13" y2="200" stroke="#0f4f8c" stroke-width="0.9"/>
+  <line x1="77" y1="0" x2="77" y2="200" stroke="#0f4f8c" stroke-width="0.9"/>
+
+  <!-- === MAIN VINE: S-wave from top to bottom === -->
+  <!-- Goes center(45,0) → right bulge → center(45,100) → left bulge → center(45,200) -->
+  <path d="M45,0
+           C45,20 72,28 72,50
+           C72,72 45,80 45,100
+           C45,120 18,128 18,150
+           C18,172 45,180 45,200"
+        fill="none" stroke="#0f4f8c" stroke-width="2.2" stroke-linecap="round"/>
+
+  <!-- === CURL at right peak (72,50) === -->
+  <!-- Spiral: goes out-right then loops around -->
+  <path d="M72,50 C82,42 86,30 78,24 C70,18 60,26 64,36 C67,44 75,46 72,50"
+        fill="none" stroke="#0f4f8c" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- Dot at curl tip -->
+  <circle cx="77" cy="24" r="3.5" fill="#0f4f8c"/>
+  <!-- Small leaf on vine, right side -->
+  <path d="M66,44 C70,36 78,36 76,44" fill="#0f4f8c" opacity="0.7"/>
+
+  <!-- === CURL at left peak (18,150) === -->
+  <path d="M18,150 C8,142 4,130 12,124 C20,118 30,126 26,136 C23,144 15,146 18,150"
+        fill="none" stroke="#0f4f8c" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- Dot at curl tip -->
+  <circle cx="13" cy="124" r="3.5" fill="#0f4f8c"/>
+  <!-- Small leaf on vine, left side -->
+  <path d="M24,136 C20,128 12,128 14,136" fill="#0f4f8c" opacity="0.7"/>
+
+  <!-- === Small diamond buds where vine crosses center === -->
+  <!-- At (45,100) — midpoint -->
+  <polygon points="45,93 51,100 45,107 39,100" fill="#0f4f8c"/>
+
+  <!-- === Diamond accents on border lines === -->
+  <polygon points="6,48  10,52  6,56  2,52"  fill="#0f4f8c"/>
+  <polygon points="84,48  88,52  84,56  80,52" fill="#0f4f8c"/>
+  <polygon points="6,148  10,152  6,156  2,152"  fill="#0f4f8c"/>
+  <polygon points="84,148 88,152 84,156 80,152" fill="#0f4f8c"/>
+
+  <!-- Seamless join dots at tile edges -->
+  <circle cx="45" cy="0"   r="3.5" fill="#0f4f8c"/>
+  <circle cx="45" cy="200" r="3.5" fill="#0f4f8c"/>
+</svg>

@@ -1340,7 +1340,7 @@ function App() {
     })
 
     return (
-      <div className="page">
+      <div className="page page--shop">
         <header className="hero shop-hero">
           <nav className="nav container shop-nav">
             <div className="brand">Для Народа</div>

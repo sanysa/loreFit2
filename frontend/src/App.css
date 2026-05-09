@@ -18,34 +18,70 @@
   z-index: 1;
 }
 
-/* Kazakh ornament — only on home hero, left and right strips */
+/* Kazakh scroll ornament — home hero sides */
 .hero:not(.shop-hero)::before,
 .hero:not(.shop-hero)::after {
   content: '';
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 140px;
-  background-image: url('/kazakh-border.svg');
+  width: 120px;
+  background-image: url('/kazakh-scroll.svg');
   background-repeat: repeat-y;
-  background-size: 120px auto;
-  opacity: 0.22;
+  background-size: 90px auto;
+  opacity: 0.2;
   pointer-events: none;
   z-index: 0;
 }
 
 .hero:not(.shop-hero)::before {
   left: 0;
-  background-position: left center;
-  -webkit-mask-image: linear-gradient(to right, black 55%, transparent 100%);
-  mask-image: linear-gradient(to right, black 55%, transparent 100%);
+  background-position: left top;
+  -webkit-mask-image: linear-gradient(to right, black 50%, transparent 100%);
+  mask-image: linear-gradient(to right, black 50%, transparent 100%);
 }
 
 .hero:not(.shop-hero)::after {
   right: 0;
-  background-position: right center;
-  -webkit-mask-image: linear-gradient(to left, black 55%, transparent 100%);
-  mask-image: linear-gradient(to left, black 55%, transparent 100%);
+  background-position: right top;
+  transform: scaleX(-1);
+  -webkit-mask-image: linear-gradient(to left, black 50%, transparent 100%);
+  mask-image: linear-gradient(to left, black 50%, transparent 100%);
+}
+
+/* Kazakh scroll ornament — shop page sides */
+.page--shop {
+  position: relative;
+}
+
+.page--shop::before,
+.page--shop::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 110px;
+  background-image: url('/kazakh-scroll.svg');
+  background-repeat: repeat-y;
+  background-size: 90px auto;
+  opacity: 0.18;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.page--shop::before {
+  left: 0;
+  background-position: left top;
+  -webkit-mask-image: linear-gradient(to right, black 45%, transparent 100%);
+  mask-image: linear-gradient(to right, black 45%, transparent 100%);
+}
+
+.page--shop::after {
+  right: 0;
+  background-position: right top;
+  transform: scaleX(-1);
+  -webkit-mask-image: linear-gradient(to left, black 45%, transparent 100%);
+  mask-image: linear-gradient(to left, black 45%, transparent 100%);
 }
 
 .shop-hero {
