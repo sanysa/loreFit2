@@ -437,6 +437,7 @@ app.get("/api/admin/orders", requireAdmin, async (req, res) => {
           o.status,
           o.fulfillment_type,
           o.delivery_address,
+          o.cancel_reason,
           COALESCE(
             json_agg(
               json_build_object(
@@ -465,6 +466,7 @@ app.get("/api/admin/orders", requireAdmin, async (req, res) => {
         status: row.status,
         fulfillmentType: row.fulfillment_type,
         deliveryAddress: row.delivery_address,
+        cancelReason: row.cancel_reason || '',
         items: row.items,
       })),
     });
@@ -517,6 +519,64 @@ app.patch("/api/admin/orders/:id/status", requireAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error("Admin order status update error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Admin: cancel order with mandatory comment
+app.post("/api/admin/orders/:id/cancel", requireAdmin, async (req, res) => {
+  const orderId = Number(req.params.id);
+  const reason = String(req.body.reason || "").trim();
+
+  if (!Number.isInteger(orderId) || orderId <= 0) {
+    return res.status(400).json({ message: "Invalid order id" });
+  }
+  if (!reason) {
+    return res.status(400).json({ message: "Причина отмены обязательна" });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE orders SET status = 'cancelled', cancel_reason = $1
+       WHERE id = $2 AND status <> 'cancelled'
+       RETURNING id, status, cancel_reason`,
+      [reason, orderId]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Заказ не найден или уже отменён" });
+    }
+    return res.json({ order: { id: result.rows[0].id, status: result.rows[0].status, cancelReason: result.rows[0].cancel_reason } });
+  } catch (error) {
+    console.error("Admin cancel order error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Buyer: cancel own order with mandatory comment (only new/processing)
+app.post("/api/orders/:id/cancel", requireAuth, async (req, res) => {
+  const orderId = Number(req.params.id);
+  const reason = String(req.body.reason || "").trim();
+
+  if (!Number.isInteger(orderId) || orderId <= 0) {
+    return res.status(400).json({ message: "Invalid order id" });
+  }
+  if (!reason) {
+    return res.status(400).json({ message: "Причина отмены обязательна" });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE orders SET status = 'cancelled', cancel_reason = $1
+       WHERE id = $2 AND user_id = $3 AND status IN ('new', 'processing')
+       RETURNING id, status, cancel_reason`,
+      [reason, orderId, req.userId]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Заказ не найден или не может быть отменён" });
+    }
+    return res.json({ order: { id: result.rows[0].id, status: result.rows[0].status, cancelReason: result.rows[0].cancel_reason } });
+  } catch (error) {
+    console.error("Buyer cancel order error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
@@ -754,6 +814,7 @@ app.get("/api/orders/active", requireAuth, async (req, res) => {
           o.created_at,
           o.total_amount_kzt,
           o.status,
+          o.cancel_reason,
           COALESCE(
             json_agg(
               json_build_object(
@@ -782,6 +843,7 @@ app.get("/api/orders/active", requireAuth, async (req, res) => {
         createdAt: row.created_at,
         totalAmountKzt: Number(row.total_amount_kzt),
         status: row.status,
+        cancelReason: row.cancel_reason || '',
         items: row.items,
       })),
     });
@@ -800,6 +862,7 @@ app.get("/api/orders/history", requireAuth, async (req, res) => {
           o.created_at,
           o.total_amount_kzt,
           o.status,
+          o.cancel_reason,
           COALESCE(
             json_agg(
               json_build_object(
@@ -838,6 +901,7 @@ app.get("/api/orders/history", requireAuth, async (req, res) => {
         createdAt: row.created_at,
         totalAmountKzt: Number(row.total_amount_kzt),
         status: row.status,
+        cancelReason: row.cancel_reason || '',
         items: row.items,
       })),
       programPurchases: purchasesResult.rows.map((row) => ({

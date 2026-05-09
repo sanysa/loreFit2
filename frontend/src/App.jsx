@@ -177,6 +177,7 @@ function App() {
   const [adminDeleteOrderId, setAdminDeleteOrderId] = useState(null)
   const [adminStatusModalOrderId, setAdminStatusModalOrderId] = useState(null)
   const [adminStatusModalValue, setAdminStatusModalValue] = useState('new')
+  const [cancelOrderModal, setCancelOrderModal] = useState({ open: false, orderId: null, isAdmin: false, comment: '', error: '' })
   const [adminProductQuery, setAdminProductQuery] = useState('')
   const [adminProductCategoryFilter, setAdminProductCategoryFilter] = useState('all')
   const [adminProductAvailabilityFilter, setAdminProductAvailabilityFilter] = useState('all')
@@ -1007,6 +1008,35 @@ function App() {
       await loadAdminData()
     } catch (error) {
       setAdminError('Не удалось удалить заказ.')
+    }
+  }
+
+  const cancelOrder = async () => {
+    const { orderId, isAdmin, comment } = cancelOrderModal
+    if (!comment.trim()) {
+      setCancelOrderModal((prev) => ({ ...prev, error: 'Укажите причину отмены' }))
+      return
+    }
+    const token = localStorage.getItem('lorefit_token')
+    const url = isAdmin
+      ? `${apiBaseUrl}/api/admin/orders/${orderId}/cancel`
+      : `${apiBaseUrl}/api/orders/${orderId}/cancel`
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ reason: comment.trim() }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.message || 'Ошибка')
+      setCancelOrderModal({ open: false, orderId: null, isAdmin: false, comment: '', error: '' })
+      if (isAdmin) {
+        await loadAdminData()
+      } else {
+        await loadOrdersData()
+      }
+    } catch (err) {
+      setCancelOrderModal((prev) => ({ ...prev, error: err.message || 'Не удалось отменить заказ' }))
     }
   }
 
@@ -1912,7 +1942,19 @@ function App() {
                                   .join(', ')}
                               </p>
                             </div>
-                            <strong>{formatKzt(order.totalAmountKzt)}</strong>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+                              <strong>{formatKzt(order.totalAmountKzt)}</strong>
+                              {(order.status === 'new' || order.status === 'processing') && (
+                                <button
+                                  className="secondary"
+                                  type="button"
+                                  style={{ fontSize: '0.85rem', color: '#c0392b' }}
+                                  onClick={() => setCancelOrderModal({ open: true, orderId: order.id, isAdmin: false, comment: '', error: '' })}
+                                >
+                                  Отменить заказ
+                                </button>
+                              )}
+                            </div>
                           </article>
                         ))}
                         {!ordersLoading && activeOrders.length === 0 && (
@@ -1937,6 +1979,9 @@ function App() {
                                   .map((item) => `${item.name} × ${item.quantity}`)
                                   .join(', ')}
                               </p>
+                              {order.status === 'cancelled' && order.cancelReason && (
+                                <p style={{ fontSize: '0.85rem', color: '#888' }}>Причина отмены: {order.cancelReason}</p>
+                              )}
                             </div>
                             <strong>{formatKzt(order.totalAmountKzt)}</strong>
                           </article>
@@ -1969,6 +2014,41 @@ function App() {
             </section>
           </section>
         </main>
+
+        {cancelOrderModal.open && (
+          <div className="admin-modal-overlay" role="dialog" aria-modal="true">
+            <div className="admin-modal-card small">
+              <h3>Отмена заказа #{cancelOrderModal.orderId}</h3>
+              <label className="field-label" htmlFor="cancel-reason-input-buyer">
+                Причина отмены <span style={{ color: '#c0392b' }}>*</span>
+              </label>
+              <textarea
+                id="cancel-reason-input-buyer"
+                className="field-input"
+                rows={3}
+                style={{ width: '100%', resize: 'vertical' }}
+                placeholder="Обязательно укажите причину..."
+                value={cancelOrderModal.comment}
+                onChange={(e) => setCancelOrderModal((prev) => ({ ...prev, comment: e.target.value, error: '' }))}
+              />
+              {cancelOrderModal.error && (
+                <p style={{ color: '#c0392b', fontSize: '0.85rem', margin: '0.3rem 0 0' }}>{cancelOrderModal.error}</p>
+              )}
+              <div className="admin-modal-actions">
+                <button className="primary" type="button" onClick={cancelOrder}>
+                  Подтвердить отмену
+                </button>
+                <button
+                  className="secondary"
+                  type="button"
+                  onClick={() => setCancelOrderModal({ open: false, orderId: null, isAdmin: false, comment: '', error: '' })}
+                >
+                  Назад
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -2311,6 +2391,21 @@ function App() {
                               >
                                 Изменить статус
                               </button>
+                              {order.status !== 'cancelled' && (
+                                <button
+                                  className="secondary"
+                                  type="button"
+                                  style={{ color: '#c0392b' }}
+                                  onClick={() => setCancelOrderModal({ open: true, orderId: order.id, isAdmin: true, comment: '', error: '' })}
+                                >
+                                  Отменить
+                                </button>
+                              )}
+                              {order.status === 'cancelled' && order.cancelReason && (
+                                <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.3rem' }}>
+                                  Причина: {order.cancelReason}
+                                </p>
+                              )}
                               <button
                                 className="secondary"
                                 type="button"
@@ -2357,7 +2452,14 @@ function App() {
                                     </span>
                                   </td>
                                   <td>{order.fulfillmentType === 'delivery' ? `Доставка${order.deliveryAddress ? ': ' + order.deliveryAddress : ''}` : 'Самовывоз'}</td>
-                                  <td>{(order.items || []).map((i) => `${i.name} × ${i.quantity}`).join(', ')}</td>
+                                  <td>
+                                    {(order.items || []).map((i) => `${i.name} × ${i.quantity}`).join(', ')}
+                                    {order.status === 'cancelled' && order.cancelReason && (
+                                      <span style={{ display: 'block', fontSize: '0.78rem', color: '#888', marginTop: '0.2rem' }}>
+                                        Причина: {order.cancelReason}
+                                      </span>
+                                    )}
+                                  </td>
                                   <td style={{ whiteSpace: 'nowrap', fontWeight: 600 }}>{formatKzt(order.totalAmountKzt)}</td>
                                   <td>
                                     <button
@@ -2718,6 +2820,41 @@ function App() {
                         </button>
                         <button className="secondary" type="button" onClick={() => setAdminStatusModalOrderId(null)}>
                           Отмена
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {cancelOrderModal.open && (
+                  <div className="admin-modal-overlay" role="dialog" aria-modal="true">
+                    <div className="admin-modal-card small">
+                      <h3>Отмена заказа #{cancelOrderModal.orderId}</h3>
+                      <label className="field-label" htmlFor="cancel-reason-input">
+                        Причина отмены <span style={{ color: '#c0392b' }}>*</span>
+                      </label>
+                      <textarea
+                        id="cancel-reason-input"
+                        className="field-input"
+                        rows={3}
+                        style={{ width: '100%', resize: 'vertical' }}
+                        placeholder="Обязательно укажите причину..."
+                        value={cancelOrderModal.comment}
+                        onChange={(e) => setCancelOrderModal((prev) => ({ ...prev, comment: e.target.value, error: '' }))}
+                      />
+                      {cancelOrderModal.error && (
+                        <p style={{ color: '#c0392b', fontSize: '0.85rem', margin: '0.3rem 0 0' }}>{cancelOrderModal.error}</p>
+                      )}
+                      <div className="admin-modal-actions">
+                        <button className="primary" type="button" onClick={cancelOrder}>
+                          Подтвердить отмену
+                        </button>
+                        <button
+                          className="secondary"
+                          type="button"
+                          onClick={() => setCancelOrderModal({ open: false, orderId: null, isAdmin: false, comment: '', error: '' })}
+                        >
+                          Назад
                         </button>
                       </div>
                     </div>
