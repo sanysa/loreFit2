@@ -62,7 +62,7 @@
   background-size: 130px auto;
   opacity: 0.18;
   pointer-events: none;
-  z-index: -1;
+  z-index: 1;
 }
 
 .kaz-ornament--left {
