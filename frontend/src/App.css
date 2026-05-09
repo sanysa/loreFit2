@@ -92,11 +92,15 @@
 }
 
 .brand {
-  font-size: 1.55rem;
-  font-weight: 800;
-  color: #0f4f8c;
   line-height: 1;
   white-space: nowrap;
+}
+
+.brand-logo {
+  height: 48px;
+  width: auto;
+  display: block;
+  object-fit: contain;
 }
 
 .nav-links {
