@@ -18,17 +18,16 @@
   z-index: 1;
 }
 
-/* Kazakh scroll ornament — home hero sides */
+/* Kazakh ornament — home hero sides */
 .hero:not(.shop-hero)::before,
 .hero:not(.shop-hero)::after {
   content: '';
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 120px;
-  background-image: url('/kazakh-scroll.svg');
+  width: 140px;
   background-repeat: repeat-y;
-  background-size: 90px auto;
+  background-size: 130px auto;
   opacity: 0.2;
   pointer-events: none;
   z-index: 0;
@@ -36,52 +35,48 @@
 
 .hero:not(.shop-hero)::before {
   left: 0;
-  background-position: left top;
-  -webkit-mask-image: linear-gradient(to right, black 50%, transparent 100%);
-  mask-image: linear-gradient(to right, black 50%, transparent 100%);
+  background-image: url('/kazakh-vert.jpg');
+  -webkit-mask-image: linear-gradient(to right, black 55%, transparent 100%);
+  mask-image: linear-gradient(to right, black 55%, transparent 100%);
 }
 
 .hero:not(.shop-hero)::after {
   right: 0;
-  background-position: right top;
-  transform: scaleX(-1);
-  -webkit-mask-image: linear-gradient(to left, black 50%, transparent 100%);
-  mask-image: linear-gradient(to left, black 50%, transparent 100%);
+  background-image: url('/kazakh-vert-right.jpg');
+  -webkit-mask-image: linear-gradient(to left, black 55%, transparent 100%);
+  mask-image: linear-gradient(to left, black 55%, transparent 100%);
 }
 
-/* Kazakh scroll ornament — shop page sides */
+/* Kazakh ornament — shop page fixed side strips */
 .page--shop {
   position: relative;
+  isolation: isolate;
 }
 
-.page--shop::before,
-.page--shop::after {
-  content: '';
+.kaz-ornament {
   position: fixed;
   top: 0;
   bottom: 0;
-  width: 110px;
-  background-image: url('/kazakh-scroll.svg');
+  width: 130px;
   background-repeat: repeat-y;
-  background-size: 90px auto;
+  background-size: 130px auto;
   opacity: 0.18;
   pointer-events: none;
-  z-index: 0;
+  z-index: -1;
 }
 
-.page--shop::before {
+.kaz-ornament--left {
   left: 0;
-  background-position: left top;
-  -webkit-mask-image: linear-gradient(to right, black 45%, transparent 100%);
-  mask-image: linear-gradient(to right, black 45%, transparent 100%);
+  background-image: url('/kazakh-vert.jpg');
+  -webkit-mask-image: linear-gradient(to right, black 55%, transparent 100%);
+  mask-image: linear-gradient(to right, black 55%, transparent 100%);
 }
 
-.page--shop::after {
+.kaz-ornament--right {
   right: 0;
-  background-position: right top;
-  transform: scaleX(-1);
-  -webkit-mask-image: linear-gradient(to left, black 45%, transparent 100%);
-  mask-image: linear-gradient(to left, black 45%, transparent 100%);
+  background-image: url('/kazakh-vert-right.jpg');
+  -webkit-mask-image: linear-gradient(to left, black 55%, transparent 100%);
+  mask-image: linear-gradient(to left, black 55%, transparent 100%);
 }
 
 .shop-hero {

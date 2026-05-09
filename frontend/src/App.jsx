@@ -1341,6 +1341,8 @@ function App() {
 
     return (
       <div className="page page--shop">
+        <div className="kaz-ornament kaz-ornament--left" aria-hidden="true" />
+        <div className="kaz-ornament kaz-ornament--right" aria-hidden="true" />
         <header className="hero shop-hero">
           <nav className="nav container shop-nav">
             <div className="brand">Для Народа</div>
