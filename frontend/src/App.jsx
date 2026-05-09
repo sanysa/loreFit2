@@ -414,12 +414,6 @@ function App() {
     )
   }, [products])
 
-  useEffect(() => {
-    if (currentPage !== 'checkout' || !authUser) {
-      return
-    }
-    setDeliveryAddress([authUser.country, authUser.city].filter(Boolean).join(', '))
-  }, [currentPage])
 
   useEffect(() => {
     if (recentlyAddedProductId === null) {
@@ -1673,7 +1667,14 @@ function App() {
                   <strong>{formatKzt(cartTotalKzt)}</strong>
                 </div>
 
-                <button className="primary pay-button" type="button" onClick={() => setCurrentPage('checkout')}>
+                <button
+                  className="primary pay-button"
+                  type="button"
+                  onClick={() => {
+                    setDeliveryAddress([authUser?.country, authUser?.city].filter(Boolean).join(', '))
+                    setCurrentPage('checkout')
+                  }}
+                >
                   Перейти к оформлению
                 </button>
               </>
