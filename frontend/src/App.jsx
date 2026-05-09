@@ -2527,8 +2527,16 @@ function App() {
                         />
 
                         <div className="admin-price-preview total">
-                          <div className="summary-row total">
-                            <span>Итого всего цена</span>
+                          <div className="summary-row">
+                            <span>Итого (расход)</span>
+                            <strong>{formatKzt(Math.round(adminTotalWithMarkup / 2))}</strong>
+                          </div>
+                          <div className="summary-row">
+                            <span>Надбавка (доход)</span>
+                            <strong style={{ color: '#276749' }}>+{formatKzt(Math.round(adminTotalWithMarkup / 2))}</strong>
+                          </div>
+                          <div className="summary-row total" style={{ borderTop: '1px solid #c6e0c6', paddingTop: '0.4rem', marginTop: '0.2rem' }}>
+                            <span>Всего</span>
                             <strong>{formatKzt(adminTotalWithMarkup)}</strong>
                           </div>
                         </div>
