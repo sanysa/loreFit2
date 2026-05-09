@@ -2534,6 +2534,26 @@ function App() {
                             <tr><td colSpan={4}><p className="booking-text">Товары не найдены.</p></td></tr>
                           )}
                         </tbody>
+                        {adminProducts.length > 0 && (() => {
+                          const totalPurchase = adminProducts.reduce((sum, p) => sum + (p.basePriceKzt > 0 ? p.basePriceKzt : 0) * p.stockQuantity, 0)
+                          const totalSale = adminProducts.reduce((sum, p) => {
+                            const sp = p.useDiscount && p.discountPriceKzt > 0 ? p.discountPriceKzt : p.priceKzt
+                            return sum + sp * p.stockQuantity
+                          }, 0)
+                          return (
+                            <tfoot>
+                              <tr className="warehouse-total-row">
+                                <td colSpan={2} style={{ fontWeight: 700, fontSize: '0.95rem' }}>Итого на складе</td>
+                                <td style={{ textAlign: 'right', fontWeight: 700, color: '#4b6578', whiteSpace: 'nowrap' }}>
+                                  {totalPurchase > 0 ? formatKzt(Math.round(totalPurchase)) : '—'}
+                                </td>
+                                <td style={{ textAlign: 'right', fontWeight: 700, color: '#0f4f8c', whiteSpace: 'nowrap' }}>
+                                  {formatKzt(Math.round(totalSale))}
+                                </td>
+                              </tr>
+                            </tfoot>
+                          )
+                        })()}
                       </table>
                     </div>
                   </div>

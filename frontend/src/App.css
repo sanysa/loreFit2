@@ -1242,6 +1242,12 @@ h1 {
 
 .warehouse-row--inactive td { opacity: 0.45; }
 
+.warehouse-total-row td {
+  border-top: 2px solid #c9d9e6;
+  padding-top: 0.75rem;
+  vertical-align: middle;
+}
+
 .admin-image-upload-row {
   display: flex;
   gap: 0.5rem;
