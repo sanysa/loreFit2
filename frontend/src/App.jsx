@@ -2448,16 +2448,33 @@ function App() {
                             <label className="field-label" htmlFor="admin-price">
                               Цена (₸)
                             </label>
-                            <input
-                              className="date-input"
-                              id="admin-price"
-                              name="priceKzt"
-                              type="number"
-                              min="1"
-                              value={adminProductForm.priceKzt}
-                              onChange={updateAdminProductForm}
-                              required
-                            />
+                            <div className="price-halve-row">
+                              <input
+                                className="date-input"
+                                id="admin-price"
+                                name="priceKzt"
+                                type="number"
+                                min="1"
+                                value={adminProductForm.priceKzt}
+                                onChange={updateAdminProductForm}
+                                required
+                              />
+                              <button
+                                type="button"
+                                className="price-halve-btn"
+                                title="Разделить цену на 2"
+                                onClick={() =>
+                                  setAdminProductForm((prev) => ({
+                                    ...prev,
+                                    priceKzt: prev.priceKzt
+                                      ? String(Math.round(Number(prev.priceKzt) / 2))
+                                      : prev.priceKzt,
+                                  }))
+                                }
+                              >
+                                ÷ 2
+                              </button>
+                            </div>
                           </div>
 
                           <div>
@@ -2507,8 +2524,12 @@ function App() {
 
                         <div className="admin-price-preview">
                           <div className="summary-row">
-                            <span>Цена с надбавкой</span>
+                            <span>Итого (цена продажи)</span>
                             <strong>{formatKzt(adminPriceWithMarkup)}</strong>
+                          </div>
+                          <div className="summary-row">
+                            <span>Надбавка</span>
+                            <strong className="price-markup-amount">+{formatKzt(adminPriceWithMarkup - adminBasePrice)}</strong>
                           </div>
                         </div>
 
