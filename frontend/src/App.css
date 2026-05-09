@@ -8,8 +8,26 @@
 }
 
 .hero {
+  position: relative;
   background: linear-gradient(135deg, #eff6ff 0%, #ffffff 50%, #f3f8f5 100%);
   padding-bottom: 4rem;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/kazakh-pattern.svg');
+  background-repeat: repeat;
+  background-size: 160px 160px;
+  opacity: 0.45;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero > * {
+  position: relative;
+  z-index: 1;
 }
 
 .shop-hero {
