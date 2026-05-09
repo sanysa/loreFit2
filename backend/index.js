@@ -133,6 +133,7 @@ function mapProductRow(row) {
     imageUrls: row.image_urls || [],
     isActive: row.is_active,
     barcode: row.barcode || "",
+    basePriceKzt: Number(row.base_price_kzt || row.price_kzt || 0),
     availabilityStatus: !row.is_active
       ? "inactive"
       : Number(row.stock_quantity) > 0
@@ -171,6 +172,7 @@ function normalizeProductPayload(body) {
     imageUrls,
     isActive: typeof body.isActive === "boolean" ? body.isActive : true,
     barcode: String(body.barcode || "").trim(),
+    basePriceKzt: Number(body.basePriceKzt || 0),
   };
 }
 
@@ -292,9 +294,9 @@ app.post("/api/admin/products", requireAdmin, async (req, res) => {
   try {
     const result = await pool.query(
       `
-        INSERT INTO products (name, category, description, price_kzt, stock_quantity, unit_type, image_urls, is_active, discount_price_kzt, use_discount, barcode)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-        RETURNING id, name, created_at, category, description, price_kzt, stock_quantity, unit_type, image_urls, is_active, discount_price_kzt, use_discount, barcode
+        INSERT INTO products (name, category, description, price_kzt, stock_quantity, unit_type, image_urls, is_active, discount_price_kzt, use_discount, barcode, base_price_kzt)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        RETURNING id, name, created_at, category, description, price_kzt, stock_quantity, unit_type, image_urls, is_active, discount_price_kzt, use_discount, barcode, base_price_kzt
       `,
       [
         payload.name,
@@ -308,6 +310,7 @@ app.post("/api/admin/products", requireAdmin, async (req, res) => {
         payload.discountPriceKzt,
         payload.useDiscount,
         payload.barcode,
+        payload.basePriceKzt,
       ]
     );
 
@@ -357,9 +360,10 @@ app.put("/api/admin/products/:id", requireAdmin, async (req, res) => {
           is_active = $8,
           discount_price_kzt = $9,
           use_discount = $10,
-          barcode = $11
-        WHERE id = $12
-        RETURNING id, name, created_at, category, description, price_kzt, stock_quantity, unit_type, image_urls, is_active, discount_price_kzt, use_discount, barcode
+          barcode = $11,
+          base_price_kzt = $12
+        WHERE id = $13
+        RETURNING id, name, created_at, category, description, price_kzt, stock_quantity, unit_type, image_urls, is_active, discount_price_kzt, use_discount, barcode, base_price_kzt
       `,
       [
         payload.name,
@@ -373,6 +377,7 @@ app.put("/api/admin/products/:id", requireAdmin, async (req, res) => {
         payload.discountPriceKzt,
         payload.useDiscount,
         payload.barcode,
+        payload.basePriceKzt,
         productId,
       ]
     );

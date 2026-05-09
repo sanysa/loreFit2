@@ -694,7 +694,7 @@ function App() {
       createdAt: product.createdAt || '',
       category: getNormalizedAdminCategory(product.category),
       description: product.description,
-      priceKzt: String(product.priceKzt),
+      priceKzt: String(product.basePriceKzt || product.priceKzt),
       markupPercent: '',
       discountPriceKzt: String(product.discountPriceKzt || ''),
       useDiscount: product.useDiscount || false,
@@ -733,6 +733,7 @@ function App() {
       unitType: adminProductForm.unitType,
       isActive: adminProductForm.isActive,
       barcode: adminProductForm.barcode.trim(),
+      basePriceKzt: adminBasePrice,
     }
 
     try {
@@ -2088,6 +2089,13 @@ function App() {
                         <span className="nav-notify-badge">{adminNewOrdersCount}</span>
                       )}
                     </button>
+                    <button
+                      className={adminTab === 'warehouse' ? 'slot active' : 'slot'}
+                      type="button"
+                      onClick={() => setAdminTab('warehouse')}
+                    >
+                      Склад
+                    </button>
                   </div>
                   <button className="secondary" type="button" onClick={loadAdminData}>
                     Обновить данные
@@ -2478,6 +2486,56 @@ function App() {
                         </div>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {adminTab === 'warehouse' && (
+                  <div className="admin-main admin-main-wide" style={{ marginTop: '1rem' }}>
+                    <h2 className="account-subtitle" style={{ marginTop: 0 }}>Склад</h2>
+                    <div className="order-history-table-wrap">
+                      <table className="order-history-table warehouse-table">
+                        <thead>
+                          <tr>
+                            <th>Товар</th>
+                            <th style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>На складе</th>
+                            <th style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>Закупочная цена</th>
+                            <th style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>Продажная цена</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {adminProducts.map((product) => {
+                            const salePrice = product.useDiscount && product.discountPriceKzt > 0
+                              ? product.discountPriceKzt
+                              : product.priceKzt
+                            return (
+                              <tr key={product.id} className={!product.isActive ? 'warehouse-row--inactive' : ''}>
+                                <td>
+                                  <span className="warehouse-product-name">{product.name}</span>
+                                  {product.barcode && (
+                                    <span className="warehouse-barcode">штрих-код: {product.barcode}</span>
+                                  )}
+                                </td>
+                                <td style={{ textAlign: 'right', fontWeight: 600 }}>
+                                  {product.stockQuantity} {product.unitType === 'kg' ? 'кг' : product.unitType === 'liter' ? 'л' : 'шт'}
+                                </td>
+                                <td style={{ textAlign: 'right', color: '#4b6578' }}>
+                                  {product.basePriceKzt > 0 ? formatKzt(product.basePriceKzt) : '—'}
+                                </td>
+                                <td style={{ textAlign: 'right', fontWeight: 600, color: product.useDiscount && product.discountPriceKzt > 0 ? '#c0392b' : '#0f4f8c' }}>
+                                  {formatKzt(salePrice)}
+                                  {product.useDiscount && product.discountPriceKzt > 0 && (
+                                    <span style={{ display: 'block', fontSize: '0.75rem', color: '#888', fontWeight: 400 }}>скидка</span>
+                                  )}
+                                </td>
+                              </tr>
+                            )
+                          })}
+                          {adminProducts.length === 0 && (
+                            <tr><td colSpan={4}><p className="booking-text">Товары не найдены.</p></td></tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
 
