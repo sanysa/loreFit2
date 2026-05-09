@@ -896,42 +896,6 @@ h1 {
   border: 1px solid #dce5ee;
   border-radius: 12px;
   background: #f8fbfd;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.price-markup-amount {
-  color: #2f855a;
-}
-
-.price-halve-row {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.price-halve-row .date-input {
-  flex: 1;
-  min-width: 0;
-}
-
-.price-halve-btn {
-  flex-shrink: 0;
-  padding: 0.55rem 0.85rem;
-  background: #4a5568;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.15s;
-}
-
-.price-halve-btn:hover {
-  background: #2d3748;
 }
 
 .admin-price-preview.total {
