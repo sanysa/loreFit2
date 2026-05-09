@@ -308,6 +308,23 @@ h1 {
 .card-item {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+
+.card-item-img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+  flex-shrink: 0;
+}
+
+.card-item-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 1.15rem;
 }
 
 .card-item h3,

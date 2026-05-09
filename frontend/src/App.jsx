@@ -3061,25 +3061,35 @@ function App() {
           <div className="grid cards-4">
             {products.slice(0, 4).map((product) => (
               <article key={product.id} className={`card-item${product.useDiscount ? ' card-item--has-discount' : ''}`}>
-                <h3>{product.name}</h3>
-                <p>{product.description}</p>
-                {product.useDiscount ? (
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ textDecoration: 'line-through', fontSize: '0.8em', color: '#888' }}>
-                      {formatKzt(product.priceKzt)}
-                    </span>
-                    <span style={{ color: 'red', fontWeight: 'bold' }}>{formatKzt(product.discountPriceKzt)}</span>
-                  </div>
-                ) : (
-                  <span>{formatKzt(product.priceKzt)}</span>
+                {product.imageUrls[0] && (
+                  <img
+                    className="card-item-img"
+                    src={product.imageUrls[0]}
+                    alt={product.name}
+                    loading="lazy"
+                  />
                 )}
-                <button
-                  className="primary category-buy-button"
-                  type="button"
-                  onClick={() => openProductDetails(product.id)}
-                >
-                  Посмотреть товар
-                </button>
+                <div className="card-item-body">
+                  <h3>{product.name}</h3>
+                  <p>{product.description}</p>
+                  {product.useDiscount ? (
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ textDecoration: 'line-through', fontSize: '0.8em', color: '#888' }}>
+                        {formatKzt(product.priceKzt)}
+                      </span>
+                      <span style={{ color: 'red', fontWeight: 'bold' }}>{formatKzt(product.discountPriceKzt)}</span>
+                    </div>
+                  ) : (
+                    <span>{formatKzt(product.priceKzt)}</span>
+                  )}
+                  <button
+                    className="primary category-buy-button"
+                    type="button"
+                    onClick={() => openProductDetails(product.id)}
+                  >
+                    Посмотреть товар
+                  </button>
+                </div>
               </article>
             ))}
           </div>
