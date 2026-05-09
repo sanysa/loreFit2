@@ -1543,17 +1543,40 @@ function App() {
                         )}
                         <small>за {unitLabels[getProductUnitType(product)]}</small>
                       </div>
-                      <button
-                        className={`primary add-to-cart-button${recentlyAddedProductId === product.id ? ' is-added' : ''}`}
-                        type="button"
-                        disabled={product.availabilityStatus !== 'in_stock'}
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          addToCart(product)
-                        }}
-                      >
-                        В корзину
-                      </button>
+                      {(() => {
+                        const cartItem = cartItems.find((i) => i.productId === product.id)
+                        const unitType = getProductUnitType(product)
+                        const increment = getQuantityIncrement(unitType)
+                        if (cartItem) {
+                          return (
+                            <div className="card-qty-stepper" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                className="card-qty-btn"
+                                type="button"
+                                onClick={() => changeCartQuantity(product.id, parseFloat((cartItem.quantity - increment).toFixed(1)))}
+                              >−</button>
+                              <span className="card-qty-value">{getQuantityDisplay(cartItem.quantity, cartItem.unitType)}</span>
+                              <button
+                                className="card-qty-btn"
+                                type="button"
+                                disabled={cartItem.quantity >= product.stockQuantity}
+                                onClick={() => changeCartQuantity(product.id, parseFloat((cartItem.quantity + increment).toFixed(1)))}
+                              >+</button>
+                            </div>
+                          )
+                        }
+                        return (
+                          <button
+                            className="card-qty-add"
+                            type="button"
+                            disabled={product.availabilityStatus !== 'in_stock'}
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              addToCart(product)
+                            }}
+                          >+</button>
+                        )
+                      })()}
                     </div>
                   </article>
                 ))}

@@ -706,6 +706,67 @@ h1 {
   box-shadow: 0 10px 22px rgba(22, 132, 93, 0.22);
 }
 
+.card-qty-add {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: none;
+  background: #0f4f8c;
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 8px 18px rgba(15, 79, 140, 0.18);
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 160ms ease;
+}
+.card-qty-add:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(15, 79, 140, 0.24);
+}
+.card-qty-add:active:not(:disabled) { transform: scale(0.93); }
+.card-qty-add:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+
+.card-qty-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #eaf1f8;
+  border-radius: 12px;
+  padding: 3px 4px;
+  flex-shrink: 0;
+}
+.card-qty-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: #0f4f8c;
+  color: #fff;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 120ms ease, transform 100ms ease;
+}
+.card-qty-btn:hover:not(:disabled) { background: #1560a8; }
+.card-qty-btn:active:not(:disabled) { transform: scale(0.9); }
+.card-qty-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.card-qty-value {
+  min-width: 44px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #14222f;
+  white-space: nowrap;
+}
+
 .product-footer {
   margin-top: 0.65rem;
   display: flex;
