@@ -1114,10 +1114,24 @@ app.delete("/api/account", requireAuth, async (req, res) => {
 
 app.use("/uploads", express.static(uploadsDir));
 
+// JSON error handler for API routes (Express 5 forwards async errors here)
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err);
+  if (req.path.startsWith("/api/")) {
+    return res.status(500).json({ message: err.message || "Internal server error" });
+  }
+  next(err);
+});
+
 const frontendDist = path.join(__dirname, "../frontend/dist");
 app.use(express.static(frontendDist));
-app.use((req, res) => { 
-  res.sendFile(path.join(frontendDist, "index.html"));
+app.use((req, res) => {
+  res.sendFile(path.join(frontendDist, "index.html"), (err) => {
+    if (err) {
+      console.error("Could not serve index.html:", err.message);
+      res.status(503).json({ message: "Frontend not available" });
+    }
+  });
 });
 
 runMigrations()
