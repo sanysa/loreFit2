@@ -2798,6 +2798,9 @@ function App() {
                           Активный товар
                         </label>
 
+                        {adminError && <p className="auth-error" style={{ marginTop: '0.75rem' }}>{adminError}</p>}
+                        {adminSuccess && <p className="auth-success" style={{ marginTop: '0.75rem' }}>{adminSuccess}</p>}
+
                         <div className="admin-actions">
                           <button className="secondary" type="button" onClick={exportAdminProductToExcel}>
                             Выгрузить в Excel

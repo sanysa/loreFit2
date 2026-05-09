@@ -389,7 +389,7 @@ app.put("/api/admin/products/:id", requireAdmin, async (req, res) => {
     return res.json({ product: mapProductRow(result.rows[0]) });
   } catch (error) {
     console.error("Admin product update error:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: error.message || "Internal server error" });
   }
 });
 
