@@ -415,11 +415,11 @@ function App() {
   }, [products])
 
   useEffect(() => {
-    if (currentPage !== 'checkout' || deliveryAddress.trim() || !authUser) {
+    if (currentPage !== 'checkout' || !authUser) {
       return
     }
     setDeliveryAddress([authUser.country, authUser.city].filter(Boolean).join(', '))
-  }, [currentPage, deliveryAddress, authUser])
+  }, [currentPage])
 
   useEffect(() => {
     if (recentlyAddedProductId === null) {
