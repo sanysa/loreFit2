@@ -314,7 +314,11 @@ function App() {
   const adminMarkupPercent = Number(adminProductForm.markupPercent) || 0
   const adminStockQuantity = Number(adminProductForm.stockQuantity) || 0
   const adminPriceWithMarkup = Math.round(adminBasePrice * (1 + adminMarkupPercent / 100))
-  const adminTotalWithMarkup = adminPriceWithMarkup * adminStockQuantity
+  const adminDiscountPrice = Number(adminProductForm.discountPriceKzt) || 0
+  const adminUseDiscount = adminProductForm.useDiscount && adminDiscountPrice > 0
+  const adminEffectivePrice = adminUseDiscount ? adminDiscountPrice : adminPriceWithMarkup
+  const adminTotalWithMarkup = adminEffectivePrice * adminStockQuantity
+  const adminMarkupTotal = adminMarkupPercent > 0 ? (adminPriceWithMarkup - adminBasePrice) * adminStockQuantity : 0
   const adminCreatedAtLabel = adminProductForm.createdAt
     ? new Date(adminProductForm.createdAt).toLocaleString('ru-RU')
     : 'Новая карточка'
@@ -2528,17 +2532,15 @@ function App() {
 
                         <div className="admin-price-preview total">
                           <div className="summary-row">
-                            <span>Итого</span>
-                            <strong>{formatKzt(Math.round(adminTotalWithMarkup / 2))}</strong>
-                          </div>
-                          <div className="summary-row">
-                            <span>Надбавка</span>
-                            <strong style={{ color: '#276749' }}>+{formatKzt(Math.round(adminTotalWithMarkup / 2))}</strong>
-                          </div>
-                          <div className="summary-row total" style={{ borderTop: '1px solid #c6e0c6', paddingTop: '0.4rem', marginTop: '0.2rem' }}>
-                            <span>Всего</span>
+                            <span>Итого{adminUseDiscount ? ' (со скидкой)' : ''}</span>
                             <strong>{formatKzt(adminTotalWithMarkup)}</strong>
                           </div>
+                          {adminMarkupPercent > 0 && (
+                            <div className="summary-row">
+                              <span>Надбавка</span>
+                              <strong style={{ color: '#276749' }}>+{formatKzt(adminMarkupTotal)}</strong>
+                            </div>
+                          )}
                         </div>
 
                         <label className="field-label" htmlFor="admin-unit-type">
