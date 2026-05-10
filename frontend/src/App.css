@@ -1796,6 +1796,30 @@ h1 {
   .addr-form-grid { grid-template-columns: 1fr; }
 }
 
+/* ── Site footer ─────────────────────────────────────────── */
+.site-footer {
+  background: #0f4f8c;
+  color: rgba(255,255,255,0.75);
+  padding: 1rem 0;
+  text-align: center;
+  font-size: 0.9rem;
+}
+.site-footer .container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.site-footer-phone {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  text-decoration: none;
+  letter-spacing: 0.03em;
+}
+.site-footer-phone:hover { text-decoration: underline; }
+
 /* touch: remove hover effects that look wrong on mobile */
 @media (hover: none) {
   .shop-catalog .add-to-cart-button:hover:not(:disabled) {

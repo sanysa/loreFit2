@@ -3349,6 +3349,13 @@ function App() {
           </button>
         </div>
       </section>
+
+      <footer className="site-footer">
+        <div className="container">
+          <span>Техническая поддержка:</span>
+          <a href="tel:+87000000000" className="site-footer-phone">8 700 000-00-00</a>
+        </div>
+      </footer>
     </div>
   )
 }
