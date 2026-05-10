@@ -142,19 +142,17 @@ function mapProductRow(row) {
   };
 }
 
-const CATEGORY_ALIASES = {
-  equipment: "vegetables",
-  sports_inventory: "vegetables",
-  nutrition: "chemistry",
-  sports_nutrition: "chemistry",
-};
-
-const ALLOWED_CATEGORIES = ["vegetables", "chemistry", "general"];
+const ALLOWED_CATEGORIES = [
+  "meat", "sausage", "fish", "pasta", "sweets", "frozen", "spices",
+  "tea_coffee", "ready_food", "kids", "home", "pets", "dairy",
+  "vegetables", "bread", "drinks", "baking", "oils", "canned",
+  "snacks", "alcohol", "chemistry", "cosmetics", "general",
+];
 const ALLOWED_UNIT_TYPES = ["piece", "kg", "ml", "g", "l"];
 
 function normalizeProductPayload(body) {
   const category = String(body.category || "").trim();
-  const normalizedCategory = CATEGORY_ALIASES[category] || category || "general";
+  const normalizedCategory = ALLOWED_CATEGORIES.includes(category) ? category : "general";
 
   const imageUrls = Array.isArray(body.imageUrls)
     ? body.imageUrls.map((item) => String(item).trim()).filter(Boolean)

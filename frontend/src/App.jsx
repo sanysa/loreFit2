@@ -101,6 +101,33 @@ const getNormalizedAdminCategory = (category) => {
   return category
 }
 
+const shopCategories = [
+  { key: 'discount',   label: 'Товары со скидками',      emoji: '🏷️' },
+  { key: 'meat',       label: 'Мясо и птица',             emoji: '🥩' },
+  { key: 'sausage',    label: 'Колбасы и сосиски',        emoji: '🌭' },
+  { key: 'fish',       label: 'Рыба и морепродукты',      emoji: '🐟' },
+  { key: 'pasta',      label: 'Макароны и крупы',         emoji: '🍝' },
+  { key: 'sweets',     label: 'Сладости и выпечка',       emoji: '🍰' },
+  { key: 'frozen',     label: 'Замороженные продукты',    emoji: '❄️' },
+  { key: 'spices',     label: 'Сахар, соль и специи',     emoji: '🧂' },
+  { key: 'tea_coffee', label: 'Чай и кофе',               emoji: '☕' },
+  { key: 'ready_food', label: 'Готовая еда',              emoji: '🍱' },
+  { key: 'kids',       label: 'Детские товары',           emoji: '🧸' },
+  { key: 'home',       label: 'Товары для дома',          emoji: '🏠' },
+  { key: 'pets',       label: 'Товары для животных',      emoji: '🐾' },
+  { key: 'dairy',      label: 'Молочные продукты',        emoji: '🥛' },
+  { key: 'vegetables', label: 'Овощи и фрукты',           emoji: '🥦' },
+  { key: 'bread',      label: 'Хлебные изделия',          emoji: '🍞' },
+  { key: 'drinks',     label: 'Сок, вода и напитки',      emoji: '🧃' },
+  { key: 'baking',     label: 'Всё для выпечки',          emoji: '🫙' },
+  { key: 'oils',       label: 'Масло и соусы',            emoji: '🫒' },
+  { key: 'canned',     label: 'Консервы и соления',       emoji: '🥫' },
+  { key: 'snacks',     label: 'Чипсы, орехи и снэки',    emoji: '🍿' },
+  { key: 'alcohol',    label: 'Алкоголь',                 emoji: '🍷' },
+  { key: 'chemistry',  label: 'Бытовая химия',            emoji: '🧹' },
+  { key: 'cosmetics',  label: 'Косметика и гигиена',      emoji: '💄' },
+]
+
 function App() {
   const apiBaseUrl = import.meta.env.VITE_API_URL ?? ''
   const paymentUrl = 'https://pay.kaspi.kz/pay/klrytula'
@@ -215,11 +242,9 @@ function App() {
   const cartItemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0)
 
   const formatKzt = (amount) => `${new Intl.NumberFormat('ru-RU').format(amount)} ₸`
-  const categoryLabels = {
-    vegetables: 'Овощи и фрукты',
-    chemistry: 'Химия и уборка',
-    general: 'Общее',
-  }
+  const categoryLabels = Object.fromEntries(
+    shopCategories.filter((c) => c.key !== 'discount').map((c) => [c.key, c.label])
+  )
 
   const unitLabels = {
     piece: 'шт',
@@ -1355,24 +1380,14 @@ function App() {
 
   if (currentPage === 'shop') {
     const normalizedQuery = shopSearchQuery.trim().toLowerCase()
-    const categoryFilteredProducts = products.filter((item) =>
-      selectedShopCategory === 'all' || item.category === selectedShopCategory,
-    )
-    const searchedProducts = categoryFilteredProducts.filter((item) =>
-      item.name.toLowerCase().includes(normalizedQuery),
-    )
-
-    const sortedProducts = [...searchedProducts].sort((a, b) => {
-      if (shopPriceSort === 'asc') {
-        return a.priceKzt - b.priceKzt
-      }
-
-      if (shopPriceSort === 'desc') {
-        return b.priceKzt - a.priceKzt
-      }
-
-      return a.id - b.id
+    const categoryFilteredProducts = products.filter((item) => {
+      if (selectedShopCategory === 'all') return true
+      if (selectedShopCategory === 'discount') return item.useDiscount && item.discountPriceKzt > 0
+      return item.category === selectedShopCategory
     })
+    const sortedProducts = categoryFilteredProducts.filter((item) =>
+      item.name.toLowerCase().includes(normalizedQuery),
+    ).sort((a, b) => a.id - b.id)
 
     return (
       <div className="page page--shop">
@@ -1452,140 +1467,126 @@ function App() {
 
         <main>
           <section className="section container shop-page-container">
-            <section className="shop-card shop-catalog shop-card-wide">
-              <p className="badge">Магазин товаров</p>
-              <h1>Товары для дома и повседневных покупок</h1>
-              <p className="booking-text">
-                Выбери нужные товары для дома, кухни и повседневного использования.
-              </p>
-
-              <div className="shop-controls">
-                <div>
-                  <label className="field-label" htmlFor="shop-category">
-                    Категория
-                  </label>
-                  <select
-                    className="date-input"
-                    id="shop-category"
-                    value={selectedShopCategory}
-                    onChange={(event) => setSelectedShopCategory(event.target.value)}
-                  >
-                    <option value="all">Все категории</option>
-                    {Object.entries(categoryLabels).map(([key, label]) => (
-                      <option key={key} value={key}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
+            {selectedShopCategory === 'all' ? (
+              <section className="shop-card shop-card-wide">
+                <p className="badge">Магазин товаров</p>
+                <h1>Каталог</h1>
+                <div className="shop-categories-grid">
+                  {shopCategories.map((cat) => (
+                    <button
+                      key={cat.key}
+                      className="shop-category-tile"
+                      type="button"
+                      onClick={() => { setSelectedShopCategory(cat.key); setShopSearchQuery('') }}
+                    >
+                      <span className="shop-category-emoji">{cat.emoji}</span>
+                      <span className="shop-category-label">{cat.label}</span>
+                    </button>
+                  ))}
                 </div>
-                <div>
-                  <label className="field-label" htmlFor="shop-search">
-                    Поиск по названию
-                  </label>
+              </section>
+            ) : (
+              <section className="shop-card shop-catalog shop-card-wide">
+                <div className="shop-cat-header">
+                  <button
+                    className="back-link"
+                    type="button"
+                    onClick={() => { setSelectedShopCategory('all'); setShopSearchQuery('') }}
+                  >
+                    ← Назад
+                  </button>
+                  <h2 className="shop-cat-title">
+                    {shopCategories.find((c) => c.key === selectedShopCategory)?.emoji}{' '}
+                    {shopCategories.find((c) => c.key === selectedShopCategory)?.label}
+                  </h2>
                   <input
-                    className="date-input"
-                    id="shop-search"
+                    className="date-input shop-cat-search"
                     type="text"
                     value={shopSearchQuery}
-                    onChange={(event) => setShopSearchQuery(event.target.value)}
-                    placeholder="Введите название товара"
+                    onChange={(e) => setShopSearchQuery(e.target.value)}
+                    placeholder="Поиск по названию"
                   />
                 </div>
-                <div>
-                  <label className="field-label" htmlFor="shop-sort">
-                    Сортировка по цене
-                  </label>
-                  <select
-                    className="date-input"
-                    id="shop-sort"
-                    value={shopPriceSort}
-                    onChange={(event) => setShopPriceSort(event.target.value)}
-                  >
-                    <option value="default">По умолчанию</option>
-                    <option value="asc">Сначала дешевле</option>
-                    <option value="desc">Сначала дороже</option>
-                  </select>
-                </div>
-              </div>
 
-              {productsLoading && <p className="booking-text">Загрузка товаров...</p>}
-              {productsError && <p className="auth-error">{productsError}</p>}
+                {productsLoading && <p className="booking-text">Загрузка товаров...</p>}
+                {productsError && <p className="auth-error">{productsError}</p>}
 
-              <div className="grid cards-4 shop-grid">
-                {sortedProducts.map((product) => (
-                  <article
-                    key={product.id}
-                    className={`product-card product-card-clickable${product.useDiscount ? ' product-card--has-discount' : ''}`}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => openProductDetails(product.id)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault()
-                        openProductDetails(product.id)
-                      }
-                    }}
-                  >
-                    <img className="product-image" src={product.imageUrls?.[0]} alt={product.name} />
-                    <h3>{product.name}</h3>
-                    <p>{product.description}</p>
-                    <div className="product-footer">
-                      <div>
-                        {product.useDiscount ? (
-                          <>
-                            <div style={{ textDecoration: 'line-through', fontSize: '0.8em', color: '#888' }}>
-                              {formatKzt(product.priceKzt)}
-                            </div>
-                            <strong style={{ color: 'red' }}>{formatKzt(product.discountPriceKzt)}</strong>
-                          </>
-                        ) : (
-                          <strong>{formatKzt(product.priceKzt)}</strong>
-                        )}
-                        <small>за {unitLabels[getProductUnitType(product)]}</small>
-                      </div>
-                      {(() => {
-                        const cartItem = cartItems.find((i) => i.productId === product.id)
-                        const unitType = getProductUnitType(product)
-                        const increment = getQuantityIncrement(unitType)
-                        if (cartItem) {
-                          return (
-                            <div className="card-qty-stepper" onClick={(e) => e.stopPropagation()}>
-                              <button
-                                className="card-qty-btn"
-                                type="button"
-                                onClick={() => changeCartQuantity(product.id, parseFloat((cartItem.quantity - increment).toFixed(1)))}
-                              >−</button>
-                              <span className="card-qty-value">{getQuantityDisplay(cartItem.quantity, cartItem.unitType)}</span>
-                              <button
-                                className="card-qty-btn"
-                                type="button"
-                                disabled={cartItem.quantity >= product.stockQuantity}
-                                onClick={() => changeCartQuantity(product.id, parseFloat((cartItem.quantity + increment).toFixed(1)))}
-                              >+</button>
-                            </div>
-                          )
+                <div className="grid cards-4 shop-grid">
+                  {sortedProducts.map((product) => (
+                    <article
+                      key={product.id}
+                      className={`product-card product-card-clickable${product.useDiscount ? ' product-card--has-discount' : ''}`}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => openProductDetails(product.id)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault()
+                          openProductDetails(product.id)
                         }
-                        return (
-                          <button
-                            className="card-qty-add"
-                            type="button"
-                            disabled={product.availabilityStatus !== 'in_stock'}
-                            onClick={(event) => {
-                              event.stopPropagation()
-                              addToCart(product)
-                            }}
-                          >+</button>
-                        )
-                      })()}
-                    </div>
-                  </article>
-                ))}
-              </div>
+                      }}
+                    >
+                      <img className="product-image" src={product.imageUrls?.[0]} alt={product.name} />
+                      <h3>{product.name}</h3>
+                      <p>{product.description}</p>
+                      <div className="product-footer">
+                        <div>
+                          {product.useDiscount ? (
+                            <>
+                              <div style={{ textDecoration: 'line-through', fontSize: '0.8em', color: '#888' }}>
+                                {formatKzt(product.priceKzt)}
+                              </div>
+                              <strong style={{ color: 'red' }}>{formatKzt(product.discountPriceKzt)}</strong>
+                            </>
+                          ) : (
+                            <strong>{formatKzt(product.priceKzt)}</strong>
+                          )}
+                          <small>за {unitLabels[getProductUnitType(product)]}</small>
+                        </div>
+                        {(() => {
+                          const cartItem = cartItems.find((i) => i.productId === product.id)
+                          const unitType = getProductUnitType(product)
+                          const increment = getQuantityIncrement(unitType)
+                          if (cartItem) {
+                            return (
+                              <div className="card-qty-stepper" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                  className="card-qty-btn"
+                                  type="button"
+                                  onClick={() => changeCartQuantity(product.id, parseFloat((cartItem.quantity - increment).toFixed(1)))}
+                                >−</button>
+                                <span className="card-qty-value">{getQuantityDisplay(cartItem.quantity, cartItem.unitType)}</span>
+                                <button
+                                  className="card-qty-btn"
+                                  type="button"
+                                  disabled={cartItem.quantity >= product.stockQuantity}
+                                  onClick={() => changeCartQuantity(product.id, parseFloat((cartItem.quantity + increment).toFixed(1)))}
+                                >+</button>
+                              </div>
+                            )
+                          }
+                          return (
+                            <button
+                              className="card-qty-add"
+                              type="button"
+                              disabled={product.availabilityStatus !== 'in_stock'}
+                              onClick={(event) => {
+                                event.stopPropagation()
+                                addToCart(product)
+                              }}
+                            >+</button>
+                          )
+                        })()}
+                      </div>
+                    </article>
+                  ))}
+                </div>
 
-              {!productsLoading && sortedProducts.length === 0 && (
-                <p className="booking-text">Товары по вашему запросу не найдены.</p>
-              )}
-            </section>
+                {!productsLoading && sortedProducts.length === 0 && (
+                  <p className="booking-text">В этой категории пока нет товаров.</p>
+                )}
+              </section>
+            )}
           </section>
         </main>
       </div>
