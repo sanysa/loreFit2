@@ -385,6 +385,9 @@ function App() {
       String(order.id).includes(query) ||
       (order.items || []).some((item) => item.name.toLowerCase().includes(query))
 
+    const isDeleted = !!order.deletedAt
+    if (adminOrderStatusFilter === 'deleted') return byQuery && isDeleted
+    if (isDeleted) return false
     const byStatus = adminOrderStatusFilter === 'all' || order.status === adminOrderStatusFilter
 
     const orderDate = new Date(order.createdAt)
@@ -404,17 +407,19 @@ function App() {
   const activeOrderStatuses = ['new', 'processing', 'paid', 'shipped_or_ready']
   const historyOrderStatuses = ['completed', 'cancelled']
 
+  const nonDeletedOrders = adminOrders.filter((o) => !o.deletedAt)
+
   const orderStats = {
-    total: adminOrders.length,
-    active: adminOrders.filter((o) => activeOrderStatuses.includes(o.status)).length,
-    completed: adminOrders.filter((o) => o.status === 'completed').length,
-    cancelled: adminOrders.filter((o) => o.status === 'cancelled').length,
-    revenue: adminOrders
+    total: nonDeletedOrders.length,
+    active: nonDeletedOrders.filter((o) => activeOrderStatuses.includes(o.status)).length,
+    completed: nonDeletedOrders.filter((o) => o.status === 'completed').length,
+    cancelled: nonDeletedOrders.filter((o) => o.status === 'cancelled').length,
+    revenue: nonDeletedOrders
       .filter((o) => o.status === 'completed')
       .reduce((s, o) => s + o.totalAmountKzt, 0),
   }
 
-  const adminHistoryOrders = adminOrders
+  const adminHistoryOrders = nonDeletedOrders
     .filter((o) => historyOrderStatuses.includes(o.status))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 
@@ -2652,6 +2657,7 @@ function App() {
                                 {orderStatusLabels[status]}
                               </option>
                             ))}
+                            <option value="deleted">Удалённые</option>
                           </select>
                         </div>
 
@@ -2748,6 +2754,11 @@ function App() {
                                 <p>Клиент: {[order.firstName, order.lastName].filter(Boolean).join(' ')}</p>
                               )}
                               {order.phone && <p>Телефон: {order.phone}</p>}
+                              {order.deletedAt && (
+                                <p style={{ color: '#c0392b', fontWeight: 600 }}>
+                                  Удалён: {new Date(order.deletedAt).toLocaleString('ru-RU')}
+                                </p>
+                              )}
                               <p>Статус: {orderStatusLabels[order.status] || order.status}</p>
                               <p>Сумма: {formatKzt(order.totalAmountKzt)}</p>
                               <p>
@@ -2763,47 +2774,51 @@ function App() {
                               </p>
                             </div>
                             <div className="admin-actions vertical admin-product-actions">
-                              <a
-                                className="primary pay-button"
-                                href="https://pay.kaspi.kz/SignIn"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{ textAlign: 'center', textDecoration: 'none' }}
-                              >
-                                Отправить счёт
-                              </a>
-                              <button
-                                className="primary"
-                                type="button"
-                                onClick={() => {
-                                  setAdminStatusModalOrderId(order.id)
-                                  setAdminStatusModalValue(order.status)
-                                }}
-                              >
-                                Изменить статус
-                              </button>
-                              {order.status !== 'cancelled' && (
-                                <button
-                                  className="secondary"
-                                  type="button"
-                                  style={{ color: '#c0392b' }}
-                                  onClick={() => setCancelOrderModal({ open: true, orderId: order.id, isAdmin: true, comment: '', error: '' })}
-                                >
-                                  Отменить
-                                </button>
+                              {!order.deletedAt && (
+                                <>
+                                  <a
+                                    className="primary pay-button"
+                                    href="https://pay.kaspi.kz/SignIn"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ textAlign: 'center', textDecoration: 'none' }}
+                                  >
+                                    Отправить счёт
+                                  </a>
+                                  <button
+                                    className="primary"
+                                    type="button"
+                                    onClick={() => {
+                                      setAdminStatusModalOrderId(order.id)
+                                      setAdminStatusModalValue(order.status)
+                                    }}
+                                  >
+                                    Изменить статус
+                                  </button>
+                                  {order.status !== 'cancelled' && (
+                                    <button
+                                      className="secondary"
+                                      type="button"
+                                      style={{ color: '#c0392b' }}
+                                      onClick={() => setCancelOrderModal({ open: true, orderId: order.id, isAdmin: true, comment: '', error: '' })}
+                                    >
+                                      Отменить
+                                    </button>
+                                  )}
+                                  {order.status === 'cancelled' && order.cancelReason && (
+                                    <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.3rem' }}>
+                                      Причина: {order.cancelReason}
+                                    </p>
+                                  )}
+                                  <button
+                                    className="secondary"
+                                    type="button"
+                                    onClick={() => setAdminDeleteOrderId(order.id)}
+                                  >
+                                    Удалить
+                                  </button>
+                                </>
                               )}
-                              {order.status === 'cancelled' && order.cancelReason && (
-                                <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.3rem' }}>
-                                  Причина: {order.cancelReason}
-                                </p>
-                              )}
-                              <button
-                                className="secondary"
-                                type="button"
-                                onClick={() => setAdminDeleteOrderId(order.id)}
-                              >
-                                Удалить
-                              </button>
                             </div>
                           </article>
                         ))}

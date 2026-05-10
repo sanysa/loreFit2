@@ -446,6 +446,7 @@ app.get("/api/admin/orders", requireAdmin, async (req, res) => {
           o.fulfillment_type,
           o.delivery_address,
           o.cancel_reason,
+          o.deleted_at,
           u.first_name,
           u.last_name,
           u.phone,
@@ -482,6 +483,7 @@ app.get("/api/admin/orders", requireAdmin, async (req, res) => {
         firstName: row.first_name || '',
         lastName: row.last_name || '',
         phone: row.phone || '',
+        deletedAt: row.deleted_at || null,
         items: row.items,
       })),
     });
@@ -642,7 +644,7 @@ app.delete("/api/admin/orders/:id", requireAdmin, async (req, res) => {
 
   try {
     const result = await pool.query(
-      `DELETE FROM orders WHERE id = $1 RETURNING id`,
+      `UPDATE orders SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL RETURNING id`,
       [orderId]
     );
 
