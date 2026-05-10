@@ -196,6 +196,11 @@ function App() {
   const [accountTab, setAccountTab] = useState('profile')
   const [accountDeleteLoading, setAccountDeleteLoading] = useState(false)
   const [accountDeleteError, setAccountDeleteError] = useState('')
+  const [profileEditMode, setProfileEditMode] = useState(false)
+  const [profileForm, setProfileForm] = useState({ firstName: '', lastName: '', city: '', phone: '' })
+  const [profileSaveLoading, setProfileSaveLoading] = useState(false)
+  const [profileSaveError, setProfileSaveError] = useState('')
+  const [profileSaveSuccess, setProfileSaveSuccess] = useState('')
   const [adminProducts, setAdminProducts] = useState([])
   const [adminOrders, setAdminOrders] = useState([])
   const [adminLoading, setAdminLoading] = useState(false)
@@ -1289,6 +1294,50 @@ function App() {
     setCurrentPage('home')
   }
 
+  const startProfileEdit = () => {
+    setProfileForm({
+      firstName: authUser?.firstName || '',
+      lastName: authUser?.lastName || '',
+      city: authUser?.city || '',
+      phone: authUser?.phone || '',
+    })
+    setProfileSaveError('')
+    setProfileSaveSuccess('')
+    setProfileEditMode(true)
+  }
+
+  const saveProfile = async () => {
+    setProfileSaveError('')
+    setProfileSaveSuccess('')
+    if (!profileForm.firstName.trim()) { setProfileSaveError('Введите имя.'); return }
+    if (!profileForm.lastName.trim()) { setProfileSaveError('Введите фамилию.'); return }
+    if (!profileForm.city.trim()) { setProfileSaveError('Введите город.'); return }
+    if (profileForm.phone) {
+      const digits = profileForm.phone.replace(/\D/g, '')
+      if (digits.length !== 11) { setProfileSaveError('Введите корректный номер: +7 777 777 77 77'); return }
+    }
+    setProfileSaveLoading(true)
+    try {
+      const token = localStorage.getItem('lorefit_token')
+      const res = await fetch(`${apiBaseUrl}/api/auth/profile`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(profileForm),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Ошибка сохранения')
+      const updatedUser = { ...authUser, ...data.user }
+      setAuthUser(updatedUser)
+      localStorage.setItem('lorefit_user', JSON.stringify(updatedUser))
+      setProfileSaveSuccess('Профиль обновлён.')
+      setProfileEditMode(false)
+    } catch (err) {
+      setProfileSaveError(err.message)
+    } finally {
+      setProfileSaveLoading(false)
+    }
+  }
+
   const onSubmitAuth = async (event) => {
     event.preventDefault()
     resetAuthMessages()
@@ -2160,29 +2209,83 @@ function App() {
 
                   {accountTab === 'profile' && (
                     <div className="account-panel">
-                      <h2 className="account-subtitle">Профиль пользователя</h2>
-                      <div className="detail-grid">
-                        <div className="summary-row">
-                          <span>Имя</span>
-                          <strong>{authUser?.firstName || '-'}</strong>
-                        </div>
-                        <div className="summary-row">
-                          <span>Фамилия</span>
-                          <strong>{authUser?.lastName || '-'}</strong>
-                        </div>
-                        <div className="summary-row">
-                          <span>Электронная почта</span>
-                          <strong>{authUser?.email || '-'}</strong>
-                        </div>
-                        <div className="summary-row">
-                          <span>Страна</span>
-                          <strong>{authUser?.country || '-'}</strong>
-                        </div>
-                        <div className="summary-row">
-                          <span>Город</span>
-                          <strong>{authUser?.city || '-'}</strong>
-                        </div>
+                      <div className="profile-header">
+                        <h2 className="account-subtitle">Профиль пользователя</h2>
+                        {!profileEditMode && (
+                          <button className="secondary profile-edit-btn" type="button" onClick={startProfileEdit}>
+                            Редактировать
+                          </button>
+                        )}
                       </div>
+
+                      {profileEditMode ? (
+                        <div className="profile-edit-form">
+                          <label className="field-label">Имя</label>
+                          <input
+                            className="date-input"
+                            type="text"
+                            value={profileForm.firstName}
+                            onChange={e => setProfileForm(p => ({ ...p, firstName: e.target.value }))}
+                          />
+                          <label className="field-label">Фамилия</label>
+                          <input
+                            className="date-input"
+                            type="text"
+                            value={profileForm.lastName}
+                            onChange={e => setProfileForm(p => ({ ...p, lastName: e.target.value }))}
+                          />
+                          <label className="field-label">Город</label>
+                          <input
+                            className="date-input"
+                            type="text"
+                            value={profileForm.city}
+                            onChange={e => setProfileForm(p => ({ ...p, city: e.target.value }))}
+                          />
+                          <label className="field-label">Номер телефона</label>
+                          <input
+                            className="date-input"
+                            type="tel"
+                            value={profileForm.phone}
+                            onChange={e => setProfileForm(p => ({ ...p, phone: formatPhoneInput(e.target.value) }))}
+                            onFocus={() => { if (!profileForm.phone) setProfileForm(p => ({ ...p, phone: '+7 ' })) }}
+                            placeholder="+7 777 777 77 77"
+                          />
+                          {profileSaveError && <p className="auth-error">{profileSaveError}</p>}
+                          {profileSaveSuccess && <p className="auth-success">{profileSaveSuccess}</p>}
+                          <div className="profile-edit-actions">
+                            <button className="primary" type="button" onClick={saveProfile} disabled={profileSaveLoading}>
+                              {profileSaveLoading ? 'Сохранение...' : 'Сохранить'}
+                            </button>
+                            <button className="secondary" type="button" onClick={() => { setProfileEditMode(false); setProfileSaveError(''); }}>
+                              Отмена
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="detail-grid">
+                          <div className="summary-row">
+                            <span>Имя</span>
+                            <strong>{authUser?.firstName || '-'}</strong>
+                          </div>
+                          <div className="summary-row">
+                            <span>Фамилия</span>
+                            <strong>{authUser?.lastName || '-'}</strong>
+                          </div>
+                          <div className="summary-row">
+                            <span>Электронная почта</span>
+                            <strong>{authUser?.email || '-'}</strong>
+                          </div>
+                          <div className="summary-row">
+                            <span>Город</span>
+                            <strong>{authUser?.city || '-'}</strong>
+                          </div>
+                          <div className="summary-row">
+                            <span>Номер телефона</span>
+                            <strong>{authUser?.phone || '-'}</strong>
+                          </div>
+                          {profileSaveSuccess && <p className="auth-success">{profileSaveSuccess}</p>}
+                        </div>
+                      )}
                     </div>
                   )}
 

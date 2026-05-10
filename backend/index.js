@@ -1108,6 +1108,56 @@ app.get("/api/auth/me", requireAuth, async (req, res) => {
   }
 });
 
+app.patch("/api/auth/profile", requireAuth, async (req, res) => {
+  const { firstName, lastName, city, phone } = req.body;
+  const cleanFirstName = String(firstName || "").trim();
+  const cleanLastName = String(lastName || "").trim();
+  const cleanCity = String(city || "").trim();
+  const cleanPhone = String(phone || "").trim();
+
+  if (!cleanFirstName || !cleanLastName || !cleanCity) {
+    return res.status(400).json({ message: "Name and city are required" });
+  }
+
+  if (cleanPhone) {
+    const phoneDigits = cleanPhone.replace(/\D/g, '');
+    if (phoneDigits.length !== 11 || phoneDigits[0] !== '7') {
+      return res.status(400).json({ message: "Invalid phone format" });
+    }
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE users
+       SET first_name = $1, last_name = $2, city = $3, phone = $4
+       WHERE id = $5
+       RETURNING id, email, first_name, last_name, country, city, role, phone`,
+      [cleanFirstName, cleanLastName, cleanCity, cleanPhone, req.userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const user = result.rows[0];
+    return res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        country: user.country,
+        city: user.city,
+        role: user.role,
+        phone: user.phone || '',
+      },
+    });
+  } catch (error) {
+    console.error("Profile update error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 app.delete("/api/account", requireAuth, async (req, res) => {
   try {
     const result = await pool.query(
