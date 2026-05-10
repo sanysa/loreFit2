@@ -2311,7 +2311,7 @@ function App() {
                             <div>
                               <h3>Заказ #{order.id}</h3>
                               <p>{new Date(order.createdAt).toLocaleString('ru-RU')}</p>
-                              <p>Статус: {orderStatusLabels[order.status] || order.status}</p>
+                              <p><span className={`order-history-badge order-history-badge--${order.status}`}>{orderStatusLabels[order.status] || order.status}</span></p>
                               <p>
                                 Товар: {(order.items || [])
                                   .map((item) => formatOrderItem(item, products))
@@ -2349,7 +2349,7 @@ function App() {
                             <div>
                               <h3>Заказ #{order.id}</h3>
                               <p>{new Date(order.createdAt).toLocaleString('ru-RU')}</p>
-                              <p>Статус: {orderStatusLabels[order.status] || order.status}</p>
+                              <p><span className={`order-history-badge order-history-badge--${order.status}`}>{orderStatusLabels[order.status] || order.status}</span></p>
                               <p>
                                 Товар: {(order.items || [])
                                   .map((item) => formatOrderItem(item, products))
@@ -2759,7 +2759,7 @@ function App() {
                                   Удалён: {new Date(order.deletedAt).toLocaleString('ru-RU')}
                                 </p>
                               )}
-                              <p>Статус: {orderStatusLabels[order.status] || order.status}</p>
+                              <p><span className={`order-history-badge order-history-badge--${order.status}`}>{orderStatusLabels[order.status] || order.status}</span></p>
                               <p>Сумма: {formatKzt(order.totalAmountKzt)}</p>
                               <p>
                                 Способ получения: {order.fulfillmentType === 'delivery' ? 'Доставка' : 'Самовывоз'}
