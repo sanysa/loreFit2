@@ -577,6 +577,56 @@ h1 {
   width: 100%;
 }
 
+/* ── Discount banner ── */
+.discount-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 1.1rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(100deg, #c0392b 0%, #e74c3c 55%, #e67e22 100%);
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+  box-shadow: 0 4px 18px rgba(192, 57, 43, 0.25);
+}
+.discount-banner:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(192, 57, 43, 0.32);
+}
+.discount-banner:active { transform: scale(0.98); }
+
+.discount-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.discount-banner-tag {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  letter-spacing: 0.02em;
+}
+.discount-banner-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.2;
+}
+.discount-banner-sub {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.8);
+}
+.discount-banner-arrow {
+  font-size: 1.5rem;
+  color: #fff;
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+
 /* ── Category products header ── */
 .shop-cat-header {
   display: flex;

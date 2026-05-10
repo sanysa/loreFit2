@@ -1469,7 +1469,7 @@ function App() {
                 <p className="badge">Магазин товаров</p>
                 <h1>Каталог</h1>
                 <div className="shop-categories-scroll">
-                  {shopCategories.map((cat) => (
+                  {shopCategories.filter((c) => c.key !== 'discount').map((cat) => (
                     <button
                       key={cat.key}
                       className="shop-category-tile"
@@ -1481,6 +1481,19 @@ function App() {
                     </button>
                   ))}
                 </div>
+
+                <button
+                  className="discount-banner"
+                  type="button"
+                  onClick={() => { setSelectedShopCategory('discount'); setShopSearchQuery('') }}
+                >
+                  <div className="discount-banner-text">
+                    <span className="discount-banner-tag">🔥 Горячие предложения</span>
+                    <strong className="discount-banner-title">Скидки и акции</strong>
+                    <span className="discount-banner-sub">Товары по сниженным ценам</span>
+                  </div>
+                  <span className="discount-banner-arrow">→</span>
+                </button>
               </section>
             ) : (
               <section className="shop-card shop-catalog shop-card-wide">
