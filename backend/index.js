@@ -203,7 +203,7 @@ app.get("/api/products", async (req, res) => {
              , unit_type, discount_price_kzt, use_discount, barcode, base_price_kzt
         FROM products
         WHERE name <> ALL($1::text[])
-        ORDER BY id ASC
+        ORDER BY name ASC
       `,
       [hiddenProductNames]
     );
@@ -259,7 +259,7 @@ app.get("/api/admin/products", requireAdmin, async (req, res) => {
              , unit_type, discount_price_kzt, use_discount, barcode, base_price_kzt
         FROM products
         WHERE name <> ALL($1::text[])
-        ORDER BY id DESC
+        ORDER BY name ASC
       `,
       [hiddenProductNames]
     );
@@ -511,20 +511,54 @@ app.patch("/api/admin/orders/:id/status", requireAdmin, async (req, res) => {
     return res.status(400).json({ message: "Invalid status" });
   }
 
+  const client = await pool.connect();
   try {
-    const result = await pool.query(
-      `
-        UPDATE orders
-        SET status = $1
-        WHERE id = $2
-        RETURNING id, status
-      `,
+    await client.query("BEGIN");
+
+    const current = await client.query(
+      "SELECT status FROM orders WHERE id = $1 FOR UPDATE",
+      [orderId]
+    );
+    if (current.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ message: "Order not found" });
+    }
+    const prevStatus = current.rows[0].status;
+
+    const result = await client.query(
+      "UPDATE orders SET status = $1 WHERE id = $2 RETURNING id, status",
       [nextStatus, orderId]
     );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Order not found" });
+    // Deduct stock when order is marked as completed (delivered)
+    if (nextStatus === "completed" && prevStatus !== "completed") {
+      const items = await client.query(
+        "SELECT product_id, quantity FROM order_items WHERE order_id = $1",
+        [orderId]
+      );
+      for (const item of items.rows) {
+        await client.query(
+          "UPDATE products SET stock_quantity = stock_quantity - $1 WHERE id = $2",
+          [item.quantity, item.product_id]
+        );
+      }
     }
+
+    // Restore stock when order is cancelled and was previously completed
+    if (nextStatus === "cancelled" && prevStatus === "completed") {
+      const items = await client.query(
+        "SELECT product_id, quantity FROM order_items WHERE order_id = $1",
+        [orderId]
+      );
+      for (const item of items.rows) {
+        await client.query(
+          "UPDATE products SET stock_quantity = stock_quantity + $1 WHERE id = $2",
+          [item.quantity, item.product_id]
+        );
+      }
+    }
+
+    await client.query("COMMIT");
 
     return res.json({
       order: {
@@ -533,8 +567,11 @@ app.patch("/api/admin/orders/:id/status", requireAdmin, async (req, res) => {
       },
     });
   } catch (error) {
+    await client.query("ROLLBACK");
     console.error("Admin order status update error:", error);
     return res.status(500).json({ message: "Internal server error" });
+  } finally {
+    client.release();
   }
 });
 
@@ -738,15 +775,6 @@ app.post("/api/orders", async (req, res) => {
           VALUES ($1, $2, $3, $4, $5)
         `,
         [order.id, item.productId, item.productName, item.priceKzt, item.quantity]
-      );
-
-      await client.query(
-        `
-          UPDATE products
-          SET stock_quantity = stock_quantity - $1
-          WHERE id = $2
-        `,
-        [item.quantity, item.productId]
       );
     }
 
