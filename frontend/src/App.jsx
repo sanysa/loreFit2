@@ -1330,19 +1330,6 @@ function App() {
                     required
                   />
 
-                  <label className="field-label" htmlFor="country">
-                    Страна
-                  </label>
-                  <input
-                    className="date-input"
-                    id="country"
-                    name="country"
-                    type="text"
-                    value={authForm.country}
-                    onChange={updateAuthForm}
-                    required
-                  />
-
                   <label className="field-label" htmlFor="city">
                     Город
                   </label>
