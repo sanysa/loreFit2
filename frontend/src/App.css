@@ -585,8 +585,10 @@ h1 {
 
 /* ── Category horizontal scroll ── */
 .shop-categories-scroll {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-rows: repeat(2, auto);
+  grid-auto-flow: column;
+  grid-auto-columns: 110px;
   gap: 0.65rem;
   margin-top: 1rem;
   overflow-x: auto;
@@ -658,7 +660,7 @@ h1 {
 }
 
 @media (max-width: 480px) {
-  .shop-category-tile { width: 90px; }
+  .shop-categories-scroll { grid-auto-columns: 90px; }
   .shop-category-img  { height: 65px; }
   .shop-category-label { font-size: 0.7rem; padding: 0.35rem 0.3rem 0.4rem; }
   .shop-cat-header { flex-wrap: wrap; }
