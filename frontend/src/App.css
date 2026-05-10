@@ -1559,6 +1559,9 @@ h1 {
 
 /* --- 480px: phone ----------------------------------------- */
 @media (max-width: 480px) {
+  /* hide ornaments so they don't overlap content */
+  body::before, body::after { display: none; }
+
   .container { width: 95%; }
 
   /* nav */
@@ -1573,6 +1576,7 @@ h1 {
   .nav-link-button { padding: 0.55rem 0.85rem; font-size: 0.85rem; white-space: nowrap; flex: 1 1 auto; }
   .nav-button      { padding: 0.6rem 0.9rem;  font-size: 0.875rem; }
   .nav-cart-label  { display: inline; }
+  .brand-logo { height: 72px; }
 
   /* hero */
   .hero { padding-bottom: 2rem; }
