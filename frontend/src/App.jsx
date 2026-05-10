@@ -102,30 +102,30 @@ const getNormalizedAdminCategory = (category) => {
 }
 
 const shopCategories = [
-  { key: 'discount',   label: 'Товары со скидками',      emoji: '🏷️' },
-  { key: 'meat',       label: 'Мясо и птица',             emoji: '🥩' },
-  { key: 'sausage',    label: 'Колбасы и сосиски',        emoji: '🌭' },
-  { key: 'fish',       label: 'Рыба и морепродукты',      emoji: '🐟' },
-  { key: 'pasta',      label: 'Макароны и крупы',         emoji: '🍝' },
-  { key: 'sweets',     label: 'Сладости и выпечка',       emoji: '🍰' },
-  { key: 'frozen',     label: 'Замороженные продукты',    emoji: '❄️' },
-  { key: 'spices',     label: 'Сахар, соль и специи',     emoji: '🧂' },
-  { key: 'tea_coffee', label: 'Чай и кофе',               emoji: '☕' },
-  { key: 'ready_food', label: 'Готовая еда',              emoji: '🍱' },
-  { key: 'kids',       label: 'Детские товары',           emoji: '🧸' },
-  { key: 'home',       label: 'Товары для дома',          emoji: '🏠' },
-  { key: 'pets',       label: 'Товары для животных',      emoji: '🐾' },
-  { key: 'dairy',      label: 'Молочные продукты',        emoji: '🥛' },
-  { key: 'vegetables', label: 'Овощи и фрукты',           emoji: '🥦' },
-  { key: 'bread',      label: 'Хлебные изделия',          emoji: '🍞' },
-  { key: 'drinks',     label: 'Сок, вода и напитки',      emoji: '🧃' },
-  { key: 'baking',     label: 'Всё для выпечки',          emoji: '🫙' },
-  { key: 'oils',       label: 'Масло и соусы',            emoji: '🫒' },
-  { key: 'canned',     label: 'Консервы и соления',       emoji: '🥫' },
-  { key: 'snacks',     label: 'Чипсы, орехи и снэки',    emoji: '🍿' },
-  { key: 'alcohol',    label: 'Алкоголь',                 emoji: '🍷' },
-  { key: 'chemistry',  label: 'Бытовая химия',            emoji: '🧹' },
-  { key: 'cosmetics',  label: 'Косметика и гигиена',      emoji: '💄' },
+  { key: 'discount',   label: 'Скидки',               img: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=300&q=70' },
+  { key: 'meat',       label: 'Мясо и птица',          img: 'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=300&q=70' },
+  { key: 'sausage',    label: 'Колбасы',               img: 'https://images.unsplash.com/photo-1519864600265-abb23847ef2c?w=300&q=70' },
+  { key: 'fish',       label: 'Рыба и морепродукты',   img: 'https://images.unsplash.com/photo-1510130387422-82bed34b37e9?w=300&q=70' },
+  { key: 'pasta',      label: 'Макароны и крупы',      img: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=300&q=70' },
+  { key: 'sweets',     label: 'Сладости и выпечка',    img: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=300&q=70' },
+  { key: 'frozen',     label: 'Заморозка',             img: 'https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?w=300&q=70' },
+  { key: 'spices',     label: 'Сахар, соль, специи',   img: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&q=70' },
+  { key: 'tea_coffee', label: 'Чай и кофе',            img: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=300&q=70' },
+  { key: 'ready_food', label: 'Готовая еда',           img: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=300&q=70' },
+  { key: 'kids',       label: 'Детские товары',        img: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=300&q=70' },
+  { key: 'home',       label: 'Товары для дома',       img: 'https://images.unsplash.com/photo-1583845112203-29329902332e?w=300&q=70' },
+  { key: 'pets',       label: 'Товары для животных',   img: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=300&q=70' },
+  { key: 'dairy',      label: 'Молочные продукты',     img: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=300&q=70' },
+  { key: 'vegetables', label: 'Овощи и фрукты',        img: 'https://images.unsplash.com/photo-1518843875459-f738682238a6?w=300&q=70' },
+  { key: 'bread',      label: 'Хлебные изделия',       img: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=300&q=70' },
+  { key: 'drinks',     label: 'Сок, вода и напитки',   img: 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?w=300&q=70' },
+  { key: 'baking',     label: 'Всё для выпечки',       img: 'https://images.unsplash.com/photo-1612203985729-70726954388c?w=300&q=70' },
+  { key: 'oils',       label: 'Масло и соусы',         img: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=300&q=70' },
+  { key: 'canned',     label: 'Консервы и соления',    img: 'https://images.unsplash.com/photo-1584680226833-0d8390402e3e?w=300&q=70' },
+  { key: 'snacks',     label: 'Чипсы, орехи, снэки',  img: 'https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=300&q=70' },
+  { key: 'alcohol',    label: 'Алкоголь',              img: 'https://images.unsplash.com/photo-1516594915697-87eb3b1c14ea?w=300&q=70' },
+  { key: 'chemistry',  label: 'Бытовая химия',         img: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=300&q=70' },
+  { key: 'cosmetics',  label: 'Косметика и гигиена',   img: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=300&q=70' },
 ]
 
 function App() {
@@ -1471,7 +1471,7 @@ function App() {
               <section className="shop-card shop-card-wide">
                 <p className="badge">Магазин товаров</p>
                 <h1>Каталог</h1>
-                <div className="shop-categories-grid">
+                <div className="shop-categories-scroll">
                   {shopCategories.map((cat) => (
                     <button
                       key={cat.key}
@@ -1479,7 +1479,7 @@ function App() {
                       type="button"
                       onClick={() => { setSelectedShopCategory(cat.key); setShopSearchQuery('') }}
                     >
-                      <span className="shop-category-emoji">{cat.emoji}</span>
+                      <img className="shop-category-img" src={cat.img} alt={cat.label} loading="lazy" />
                       <span className="shop-category-label">{cat.label}</span>
                     </button>
                   ))}
