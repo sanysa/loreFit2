@@ -1639,6 +1639,159 @@ h1 {
 }
 
 
+/* ── Address selector (checkout) ─────────────────────────── */
+.addr-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.addr-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.8rem 0.9rem;
+  border: 1.5px solid #dce5ee;
+  border-radius: 12px;
+  cursor: pointer;
+  background: #f8fafc;
+  transition: border-color 140ms, background 140ms;
+}
+.addr-card--selected {
+  border-color: #0f4f8c;
+  background: #eff6ff;
+}
+.addr-radio { margin-top: 2px; accent-color: #0f4f8c; flex-shrink: 0; }
+
+.addr-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+  min-width: 0;
+}
+.addr-card-street {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: #14222f;
+  word-break: break-word;
+}
+.addr-card-details {
+  font-size: 0.8rem;
+  color: #5a7a99;
+}
+.addr-card-comment {
+  font-size: 0.78rem;
+  color: #7a99b8;
+  font-style: italic;
+}
+.addr-card-delete {
+  background: none;
+  border: none;
+  color: #b0bec5;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0 0.2rem;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color 120ms;
+}
+.addr-card-delete:hover { color: #e63946; }
+
+.addr-add-btn {
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+/* ── Address modal ──────────────────────────────────────────── */
+.addr-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.addr-modal {
+  background: #fff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+.addr-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.25rem 0.75rem;
+  border-bottom: 1px solid #e8eef4;
+}
+.addr-modal-header h3 { margin: 0; font-size: 1.1rem; }
+.addr-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: #7a99b8;
+  padding: 0.25rem;
+  line-height: 1;
+}
+.addr-modal-close:hover { color: #14222f; }
+
+.addr-map {
+  width: 100%;
+  height: 260px;
+  background: #e8eef4;
+}
+
+.addr-map-hint {
+  font-size: 0.78rem;
+  color: #7a99b8;
+  margin: 0.4rem 1.25rem 0;
+}
+
+.addr-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  padding: 0.9rem 1.25rem;
+}
+.addr-form-full { grid-column: 1 / -1; }
+
+.addr-type-toggle {
+  display: flex;
+  gap: 0.5rem;
+}
+.addr-type-toggle button {
+  flex: 1;
+  font-size: 0.85rem;
+  padding: 0.55rem 0.5rem;
+}
+
+.addr-modal-footer {
+  display: flex;
+  gap: 0.65rem;
+  padding: 0.75rem 1.25rem 1.1rem;
+  border-top: 1px solid #e8eef4;
+}
+.addr-modal-footer button { flex: 1; }
+
+@media (max-width: 480px) {
+  .addr-modal { border-radius: 20px 20px 0 0; max-height: 95vh; }
+  .addr-modal-overlay { align-items: flex-end; padding: 0; }
+  .addr-map { height: 200px; }
+  .addr-form-grid { grid-template-columns: 1fr; }
+}
+
 /* touch: remove hover effects that look wrong on mobile */
 @media (hover: none) {
   .shop-catalog .add-to-cart-button:hover:not(:disabled) {

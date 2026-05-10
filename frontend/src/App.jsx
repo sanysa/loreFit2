@@ -178,7 +178,12 @@ function App() {
     return raw ? JSON.parse(raw) : []
   })
   const fulfillmentType = 'delivery'
-  const [deliveryAddress, setDeliveryAddress] = useState('')
+  const [savedAddresses, setSavedAddresses] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('lorefit_addresses') || '[]') } catch { return [] }
+  })
+  const [selectedAddressIdx, setSelectedAddressIdx] = useState(null)
+  const [showAddressModal, setShowAddressModal] = useState(false)
+  const [addrForm, setAddrForm] = useState({ street: '', apartment: '', entrance: '', floor: '', buildingType: 'residential', comment: '' })
   const [orderLoading, setOrderLoading] = useState(false)
   const [orderError, setOrderError] = useState('')
   const [lastOrder, setLastOrder] = useState(null)
@@ -199,6 +204,9 @@ function App() {
   const [adminEditingProductId, setAdminEditingProductId] = useState(null)
   const [adminProductModalOpen, setAdminProductModalOpen] = useState(false)
   const barcodeInputRef = useRef(null)
+  const mapContainerRef = useRef(null)
+  const mapObjRef = useRef(null)
+  const mapMarkerRef = useRef(null)
   const [adminDeleteProductId, setAdminDeleteProductId] = useState(null)
   const [adminDeleteOrderId, setAdminDeleteOrderId] = useState(null)
   const [adminStatusModalOrderId, setAdminStatusModalOrderId] = useState(null)
@@ -241,6 +249,91 @@ function App() {
   const cartItemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0)
 
   const formatKzt = (amount) => `${new Intl.NumberFormat('ru-RU').format(amount)} ₸`
+
+  const buildFullAddress = (addr) => {
+    const parts = []
+    if (addr.street) parts.push(addr.street)
+    if (addr.apartment) parts.push(`кв./офис ${addr.apartment}`)
+    if (addr.entrance) parts.push(`подъезд ${addr.entrance}`)
+    if (addr.floor) parts.push(`этаж ${addr.floor}`)
+    parts.push(addr.buildingType === 'business' ? '(бизнес-центр)' : '(жилой дом)')
+    if (addr.comment) parts.push(`[курьеру: ${addr.comment}]`)
+    return parts.join(', ')
+  }
+
+  const saveAddress = () => {
+    if (!addrForm.street.trim()) return
+    const newList = [...savedAddresses, { ...addrForm }]
+    setSavedAddresses(newList)
+    localStorage.setItem('lorefit_addresses', JSON.stringify(newList))
+    setSelectedAddressIdx(newList.length - 1)
+    setShowAddressModal(false)
+    setAddrForm({ street: '', apartment: '', entrance: '', floor: '', buildingType: 'residential', comment: '' })
+  }
+
+  const deleteAddress = (idx) => {
+    const newList = savedAddresses.filter((_, i) => i !== idx)
+    setSavedAddresses(newList)
+    localStorage.setItem('lorefit_addresses', JSON.stringify(newList))
+    if (selectedAddressIdx === idx) setSelectedAddressIdx(newList.length > 0 ? 0 : null)
+    else if (selectedAddressIdx > idx) setSelectedAddressIdx(selectedAddressIdx - 1)
+  }
+
+  useEffect(() => {
+    if (!showAddressModal) {
+      mapObjRef.current?.destroy()
+      mapObjRef.current = null
+      mapMarkerRef.current = null
+      return
+    }
+    const DGIS_KEY = 'demonstrationDummyPublicKey'
+    const initMap = () => {
+      if (!mapContainerRef.current || mapObjRef.current) return
+      const map = new window.mapgl.Map(mapContainerRef.current, {
+        center: [76.889709, 43.238949],
+        zoom: 13,
+        key: DGIS_KEY,
+      })
+      mapObjRef.current = map
+      map.on('click', async (e) => {
+        const [lng, lat] = e.lngLat
+        if (mapMarkerRef.current) {
+          mapMarkerRef.current.setCoordinates([lng, lat])
+        } else {
+          mapMarkerRef.current = new window.mapgl.Marker(map, { coordinates: [lng, lat] })
+        }
+        try {
+          const res = await fetch(
+            `https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&fields=items.full_address_name&key=${DGIS_KEY}`
+          )
+          const data = await res.json()
+          const addr = data?.result?.items?.[0]?.full_address_name || ''
+          setAddrForm((prev) => ({ ...prev, street: addr }))
+        } catch {
+          setAddrForm((prev) => ({ ...prev, street: `${lat.toFixed(5)}, ${lng.toFixed(5)}` }))
+        }
+      })
+    }
+    if (window.mapgl) {
+      initMap()
+    } else {
+      const existing = document.getElementById('mapgl-script')
+      if (existing) {
+        existing.addEventListener('load', initMap)
+      } else {
+        const s = document.createElement('script')
+        s.id = 'mapgl-script'
+        s.src = 'https://mapgl.2gis.com/api/js/v1'
+        s.onload = initMap
+        document.head.appendChild(s)
+      }
+    }
+    return () => {
+      mapObjRef.current?.destroy()
+      mapObjRef.current = null
+      mapMarkerRef.current = null
+    }
+  }, [showAddressModal])
   const categoryLabels = Object.fromEntries(
     shopCategories.filter((c) => c.key !== 'discount').map((c) => [c.key, c.label])
   )
@@ -555,10 +648,12 @@ function App() {
       return
     }
 
-    if (!deliveryAddress.trim()) {
-      setOrderError('Введите адрес доставки.')
+    const selAddr = selectedAddressIdx !== null ? savedAddresses[selectedAddressIdx] : null
+    if (!selAddr) {
+      setOrderError('Выберите или добавьте адрес доставки.')
       return
     }
+    const deliveryAddress = buildFullAddress(selAddr)
 
     setOrderLoading(true)
     setOrderError('')
@@ -1767,18 +1862,134 @@ function App() {
                 ))}
               </div>
 
-              <label className="field-label" htmlFor="delivery-address">
-                Адрес доставки
-              </label>
-              <input
-                className="date-input"
-                id="delivery-address"
-                type="text"
-                value={deliveryAddress}
-                onChange={(event) => setDeliveryAddress(event.target.value)}
-                placeholder="Город, улица, дом, квартира"
-                required
-              />
+              <p className="field-label" style={{ marginBottom: '0.5rem' }}>Адрес доставки</p>
+
+              {savedAddresses.length > 0 && (
+                <div className="addr-list">
+                  {savedAddresses.map((addr, idx) => (
+                    <div
+                      key={idx}
+                      className={`addr-card${selectedAddressIdx === idx ? ' addr-card--selected' : ''}`}
+                      onClick={() => setSelectedAddressIdx(idx)}
+                    >
+                      <input
+                        type="radio"
+                        name="checkout-address"
+                        className="addr-radio"
+                        checked={selectedAddressIdx === idx}
+                        onChange={() => setSelectedAddressIdx(idx)}
+                      />
+                      <div className="addr-card-body">
+                        <span className="addr-card-street">{addr.street}</span>
+                        <span className="addr-card-details">
+                          {[
+                            addr.apartment && `кв./офис ${addr.apartment}`,
+                            addr.entrance && `подъезд ${addr.entrance}`,
+                            addr.floor && `этаж ${addr.floor}`,
+                            addr.buildingType === 'business' ? 'бизнес-центр' : 'жилой дом',
+                          ].filter(Boolean).join(' · ')}
+                        </span>
+                        {addr.comment && <span className="addr-card-comment">Курьеру: {addr.comment}</span>}
+                      </div>
+                      <button
+                        className="addr-card-delete"
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); deleteAddress(idx) }}
+                      >✕</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <button
+                className="secondary addr-add-btn"
+                type="button"
+                onClick={() => setShowAddressModal(true)}
+              >
+                + Добавить адрес
+              </button>
+
+              {showAddressModal && (
+                <div className="addr-modal-overlay" onClick={() => setShowAddressModal(false)}>
+                  <div className="addr-modal" onClick={(e) => e.stopPropagation()}>
+                    <div className="addr-modal-header">
+                      <h3>Новый адрес</h3>
+                      <button type="button" className="addr-modal-close" onClick={() => setShowAddressModal(false)}>✕</button>
+                    </div>
+
+                    <div ref={mapContainerRef} className="addr-map" />
+                    <p className="addr-map-hint">Кликните на карту, чтобы выбрать точку — адрес заполнится автоматически</p>
+
+                    <div className="addr-form-grid">
+                      <div className="addr-form-full">
+                        <label className="field-label">Улица и номер дома</label>
+                        <input
+                          className="date-input"
+                          value={addrForm.street}
+                          onChange={(e) => setAddrForm((p) => ({ ...p, street: e.target.value }))}
+                          placeholder="ул. Абая, 1"
+                        />
+                      </div>
+                      <div>
+                        <label className="field-label">Кв. / Офис</label>
+                        <input
+                          className="date-input"
+                          value={addrForm.apartment}
+                          onChange={(e) => setAddrForm((p) => ({ ...p, apartment: e.target.value }))}
+                          placeholder="45"
+                        />
+                      </div>
+                      <div>
+                        <label className="field-label">Подъезд</label>
+                        <input
+                          className="date-input"
+                          value={addrForm.entrance}
+                          onChange={(e) => setAddrForm((p) => ({ ...p, entrance: e.target.value }))}
+                          placeholder="3"
+                        />
+                      </div>
+                      <div className="addr-form-full">
+                        <label className="field-label">Этаж</label>
+                        <input
+                          className="date-input"
+                          value={addrForm.floor}
+                          onChange={(e) => setAddrForm((p) => ({ ...p, floor: e.target.value }))}
+                          placeholder="5"
+                        />
+                      </div>
+                      <div className="addr-form-full">
+                        <label className="field-label">Тип здания</label>
+                        <div className="addr-type-toggle">
+                          <button
+                            type="button"
+                            className={addrForm.buildingType === 'residential' ? 'primary' : 'secondary'}
+                            onClick={() => setAddrForm((p) => ({ ...p, buildingType: 'residential' }))}
+                          >🏠 Жилой дом</button>
+                          <button
+                            type="button"
+                            className={addrForm.buildingType === 'business' ? 'primary' : 'secondary'}
+                            onClick={() => setAddrForm((p) => ({ ...p, buildingType: 'business' }))}
+                          >🏢 Бизнес-центр</button>
+                        </div>
+                      </div>
+                      <div className="addr-form-full">
+                        <label className="field-label">Комментарий для курьера</label>
+                        <input
+                          className="date-input"
+                          value={addrForm.comment}
+                          onChange={(e) => setAddrForm((p) => ({ ...p, comment: e.target.value }))}
+                          placeholder="Домофон 45#, позвонить за 10 мин"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="addr-modal-footer">
+                      <button className="secondary" type="button" onClick={() => setShowAddressModal(false)}>Отмена</button>
+                      <button className="primary" type="button" onClick={saveAddress} disabled={!addrForm.street.trim()}>Сохранить адрес</button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {orderError && <p className="auth-error">{orderError}</p>}
             </section>
