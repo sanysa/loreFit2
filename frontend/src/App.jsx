@@ -1367,7 +1367,7 @@ function App() {
       authMode === 'register'
         ? authForm
         : {
-            email: authForm.email,
+            login: authForm.email,
             password: authForm.password,
           }
 
@@ -1421,20 +1421,21 @@ function App() {
             <p className="booking-text">
               {authMode === 'register'
                 ? 'Создай аккаунт для доступа к магазину и заказам.'
-                : 'Войди в аккаунт по email и паролю.'}
+                : 'Войди по email или номеру телефона.'}
             </p>
 
             <form className="auth-form" onSubmit={onSubmitAuth}>
               <label className="field-label" htmlFor="email">
-                Электронная почта
+                {authMode === 'register' ? 'Электронная почта' : 'Email или номер телефона'}
               </label>
               <input
                 className="date-input"
                 id="email"
                 name="email"
-                type="email"
+                type={authMode === 'register' ? 'email' : 'text'}
                 value={authForm.email}
                 onChange={updateAuthForm}
+                placeholder={authMode === 'register' ? '' : 'email@example.com или +7 777 777 77 77'}
                 required
               />
 

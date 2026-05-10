@@ -1045,24 +1045,31 @@ app.post("/api/auth/register", async (req, res) => {
 });
 
 app.post("/api/auth/login", async (req, res) => {
-  const { email, password } = req.body;
+  const { login, email, password } = req.body;
 
-  const cleanEmail = normalizeEmail(email);
+  const identifier = String(login || email || "").trim();
   const cleanPassword = String(password || "").trim();
 
-  if (!cleanEmail || !cleanPassword) {
+  if (!identifier || !cleanPassword) {
     return res.status(400).json({ message: "Email and password are required" });
   }
 
   try {
-    const userResult = await pool.query(
-      `
-        SELECT id, email, password_hash, first_name, last_name, country, city, role, phone
-        FROM users
-        WHERE email = $1
-      `,
-      [cleanEmail]
-    );
+    let userResult;
+    if (identifier.includes("@")) {
+      userResult = await pool.query(
+        `SELECT id, email, password_hash, first_name, last_name, country, city, role, phone
+         FROM users WHERE email = $1`,
+        [identifier.toLowerCase()]
+      );
+    } else {
+      const phoneDigits = identifier.replace(/\D/g, "");
+      userResult = await pool.query(
+        `SELECT id, email, password_hash, first_name, last_name, country, city, role, phone
+         FROM users WHERE regexp_replace(phone, '[^0-9]', '', 'g') = $1`,
+        [phoneDigits]
+      );
+    }
 
     if (userResult.rows.length === 0) {
       return res.status(401).json({ message: "Invalid credentials" });
