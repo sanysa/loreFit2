@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 
 const hiddenProductNames = [
@@ -85,20 +85,18 @@ const getNormalizedUnitType = (product) => {
   return product.unitType || 'piece'
 }
 
+const VALID_SHOP_CATEGORY_KEYS = [
+  'meat','sausage','fish','pasta','sweets','frozen','spices',
+  'tea_coffee','ready_food','kids','home','pets','dairy',
+  'vegetables','bread','drinks','baking','oils','canned',
+  'snacks','alcohol','chemistry','cosmetics','general',
+]
+
 const getNormalizedAdminCategory = (category) => {
-  if (category === 'equipment' || category === 'sports_inventory') {
-    return 'vegetables'
-  }
-
-  if (category === 'nutrition' || category === 'sports_nutrition') {
-    return 'chemistry'
-  }
-
-  if (!['vegetables', 'chemistry', 'general'].includes(category)) {
-    return 'general'
-  }
-
-  return category
+  if (category === 'equipment' || category === 'sports_inventory') return 'vegetables'
+  if (category === 'nutrition' || category === 'sports_nutrition') return 'chemistry'
+  if (VALID_SHOP_CATEGORY_KEYS.includes(category)) return category
+  return 'general'
 }
 
 const shopCategories = [
@@ -200,6 +198,7 @@ function App() {
   const [adminTab, setAdminTab] = useState('products')
   const [adminEditingProductId, setAdminEditingProductId] = useState(null)
   const [adminProductModalOpen, setAdminProductModalOpen] = useState(false)
+  const barcodeInputRef = useRef(null)
   const [adminDeleteProductId, setAdminDeleteProductId] = useState(null)
   const [adminDeleteOrderId, setAdminDeleteOrderId] = useState(null)
   const [adminStatusModalOrderId, setAdminStatusModalOrderId] = useState(null)
@@ -757,7 +756,7 @@ function App() {
         .filter(Boolean),
       unitType: adminProductForm.unitType,
       isActive: adminProductForm.isActive,
-      barcode: adminProductForm.barcode.trim(),
+      barcode: (barcodeInputRef.current?.value ?? adminProductForm.barcode).trim(),
       basePriceKzt: adminBasePrice,
     }
 
@@ -2579,7 +2578,11 @@ function App() {
                   <div className="admin-modal-overlay" role="dialog" aria-modal="true">
                     <div className="admin-modal-card">
                       <h2>{adminEditingProductId ? 'Редактировать товар' : 'Создать товар'}</h2>
-                      <form className="auth-form admin-form" onSubmit={submitAdminProduct}>
+                      <form
+                        className="auth-form admin-form"
+                        onSubmit={submitAdminProduct}
+                        onKeyDown={(e) => { if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') e.preventDefault() }}
+                      >
                         <div className="admin-price-preview">
                           <div className="summary-row">
                             <span>Дата заполнения</span>
@@ -2604,6 +2607,7 @@ function App() {
                           Штрих-код
                         </label>
                         <input
+                          ref={barcodeInputRef}
                           className="date-input"
                           id="admin-barcode"
                           name="barcode"
@@ -2611,7 +2615,6 @@ function App() {
                           placeholder="Кликните сюда и отсканируйте"
                           value={adminProductForm.barcode}
                           onChange={updateAdminProductForm}
-                          onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
                         />
 
                         <label className="field-label" htmlFor="admin-category">
