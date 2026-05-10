@@ -12,10 +12,43 @@
   box-sizing: border-box;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   min-width: 320px;
   background: #ffffff;
+  position: relative;
+}
+
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: clamp(36px, 9vw, 130px);
+  background-repeat: repeat-y;
+  background-size: 100% auto;
+  opacity: 0.13;
+  pointer-events: none;
+  z-index: -1;
+}
+
+body::before {
+  left: 0;
+  background-image: url('/kazakh-vert.jpg');
+  -webkit-mask-image: linear-gradient(to right, black 55%, transparent 100%);
+  mask-image: linear-gradient(to right, black 55%, transparent 100%);
+}
+
+body::after {
+  right: 0;
+  background-image: url('/kazakh-vert-right.jpg');
+  -webkit-mask-image: linear-gradient(to left, black 55%, transparent 100%);
+  mask-image: linear-gradient(to left, black 55%, transparent 100%);
 }
 
 a {
