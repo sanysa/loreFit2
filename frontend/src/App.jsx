@@ -2754,6 +2754,15 @@ function App() {
                               </p>
                             </div>
                             <div className="admin-actions vertical admin-product-actions">
+                              <a
+                                className="primary pay-button"
+                                href="https://pay.kaspi.kz/SignIn"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ textAlign: 'center', textDecoration: 'none' }}
+                              >
+                                Отправить счёт
+                              </a>
                               <button
                                 className="primary"
                                 type="button"
