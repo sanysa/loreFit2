@@ -344,41 +344,46 @@ app.put("/api/admin/products/:id", requireAdmin, async (req, res) => {
   }
 
   try {
-    const result = await pool.query(
-      `
-        UPDATE products
-        SET
-          name = $1,
-          category = $2,
-          description = $3,
-          price_kzt = $4,
-          stock_quantity = $5,
-          unit_type = $6,
-          image_urls = $7,
-          is_active = $8,
-          discount_price_kzt = $9,
-          use_discount = $10,
-          barcode = $11,
-          base_price_kzt = $12
-        WHERE id = $13
-        RETURNING id, name, created_at, category, description, price_kzt, stock_quantity, unit_type, image_urls, is_active, discount_price_kzt, use_discount, barcode, base_price_kzt
-      `,
-      [
-        payload.name,
-        payload.category,
-        payload.description,
-        payload.priceKzt,
-        payload.stockQuantity,
-        payload.unitType,
-        payload.imageUrls,
-        payload.isActive,
-        payload.discountPriceKzt,
-        payload.useDiscount,
-        payload.barcode,
-        payload.basePriceKzt,
-        productId,
-      ]
-    );
+    let result;
+    try {
+      result = await pool.query(
+        `UPDATE products
+         SET name=$1, category=$2, description=$3, price_kzt=$4,
+             stock_quantity=$5, unit_type=$6, image_urls=$7, is_active=$8,
+             discount_price_kzt=$9, use_discount=$10, barcode=$11, base_price_kzt=$12
+         WHERE id=$13
+         RETURNING id, name, created_at, category, description, price_kzt,
+                   stock_quantity, unit_type, image_urls, is_active,
+                   discount_price_kzt, use_discount, barcode, base_price_kzt`,
+        [
+          payload.name, payload.category, payload.description, payload.priceKzt,
+          payload.stockQuantity, payload.unitType, payload.imageUrls, payload.isActive,
+          payload.discountPriceKzt, payload.useDiscount, payload.barcode,
+          payload.basePriceKzt, productId,
+        ]
+      );
+    } catch (innerErr) {
+      // base_price_kzt column missing (migration 016 not yet applied) — fallback
+      if (innerErr.code === "42703") {
+        result = await pool.query(
+          `UPDATE products
+           SET name=$1, category=$2, description=$3, price_kzt=$4,
+               stock_quantity=$5, unit_type=$6, image_urls=$7, is_active=$8,
+               discount_price_kzt=$9, use_discount=$10, barcode=$11
+           WHERE id=$12
+           RETURNING id, name, created_at, category, description, price_kzt,
+                     stock_quantity, unit_type, image_urls, is_active,
+                     discount_price_kzt, use_discount, barcode`,
+          [
+            payload.name, payload.category, payload.description, payload.priceKzt,
+            payload.stockQuantity, payload.unitType, payload.imageUrls, payload.isActive,
+            payload.discountPriceKzt, payload.useDiscount, payload.barcode, productId,
+          ]
+        );
+      } else {
+        throw innerErr;
+      }
+    }
 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "Product not found" });

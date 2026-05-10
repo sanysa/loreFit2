@@ -2837,7 +2837,12 @@ function App() {
                           Активный товар
                         </label>
 
-                        {adminError && <p className="auth-error" style={{ marginTop: '0.75rem' }}>{adminError}</p>}
+                        {adminError && (
+                          <div style={{ marginTop: '0.75rem', padding: '0.75rem 1rem', background: '#fff0f0', border: '1.5px solid #e74c3c', borderRadius: '10px' }}>
+                            <strong style={{ color: '#c0392b', display: 'block', marginBottom: '0.25rem' }}>Ошибка сохранения</strong>
+                            <span style={{ color: '#b42318', fontSize: '0.88rem' }}>{adminError}</span>
+                          </div>
+                        )}
                         {adminSuccess && <p className="auth-success" style={{ marginTop: '0.75rem' }}>{adminSuccess}</p>}
 
                         <div className="admin-actions">
@@ -2847,7 +2852,7 @@ function App() {
                           <button className="primary" type="submit">
                             {adminEditingProductId ? 'Сохранить изменения' : 'Создать товар'}
                           </button>
-                          <button className="secondary" type="button" onClick={resetAdminProductForm}>
+                          <button className="secondary" type="button" onClick={() => { resetAdminProductForm(); loadAdminData() }}>
                             Отмена
                           </button>
                         </div>
