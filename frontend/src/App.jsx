@@ -74,11 +74,11 @@ const attachProductImage = (product) => {
 }
 
 const getNormalizedUnitType = (product) => {
-  if (product.category === 'vegetables' || legacyVegetableNames.has(product.name)) {
+  if (product.category === 'vegetables' || product.category === 'fruits' || legacyVegetableNames.has(product.name)) {
     return 'kg'
   }
 
-  if (product.unitType === 'ml') {
+  if (product.category === 'drinks' || product.unitType === 'ml' || product.unitType === 'l') {
     return 'l'
   }
 
@@ -637,7 +637,7 @@ function App() {
 
   const formatOrderItem = (item, productsArr) => {
     const found = (productsArr || []).find((p) => p.productId === item.productId)
-    const unitType = found?.unitType || 'piece'
+    const unitType = found ? getNormalizedUnitType(found) : 'piece'
     const label = unitLabels[unitType] || 'шт'
     const qty = (unitType === 'kg' || unitType === 'l') ? item.quantity : Math.round(item.quantity)
     return `${item.name} — ${qty} ${label}`
