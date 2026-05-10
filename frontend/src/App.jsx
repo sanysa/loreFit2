@@ -1462,63 +1462,6 @@ function App() {
           </div>
         )}
 
-        <nav className="mobile-bottom-nav" aria-label="Навигация">
-          <button
-            className={`mbn-item${currentPage === 'home' ? ' mbn-item--active' : ''}`}
-            type="button"
-            onClick={() => setCurrentPage('home')}
-          >
-            <span className="mbn-icon">🏠</span>
-            <span className="mbn-label">Главная</span>
-          </button>
-          <button
-            className={`mbn-item${currentPage === 'shop' ? ' mbn-item--active' : ''}`}
-            type="button"
-            onClick={() => setCurrentPage('shop')}
-          >
-            <span className="mbn-icon">🛍</span>
-            <span className="mbn-label">Товары</span>
-          </button>
-          {authUser && (
-            <button
-              className={`mbn-item${currentPage === 'account' ? ' mbn-item--active' : ''}`}
-              type="button"
-              onClick={() => { setNewOrderNotification(false); setCurrentPage('account'); loadOrdersData() }}
-            >
-              <span className="mbn-icon" style={{ position: 'relative' }}>
-                👤
-                {newOrderNotification && <span className="mbn-dot" />}
-              </span>
-              <span className="mbn-label">Кабинет</span>
-            </button>
-          )}
-          {authUser && (
-            <button
-              className={`mbn-item${currentPage === 'cart' ? ' mbn-item--active' : ''}`}
-              type="button"
-              onClick={() => setCurrentPage('cart')}
-            >
-              <span className="mbn-icon" style={{ position: 'relative' }}>
-                🛒
-                {cartItemsCount > 0 && (
-                  <span className="mbn-badge">{cartItemsCount}</span>
-                )}
-              </span>
-              <span className="mbn-label">Корзина</span>
-            </button>
-          )}
-          {!authUser && (
-            <button
-              className={`mbn-item${currentPage === 'auth' ? ' mbn-item--active' : ''}`}
-              type="button"
-              onClick={() => setCurrentPage('auth')}
-            >
-              <span className="mbn-icon">🔑</span>
-              <span className="mbn-label">Войти</span>
-            </button>
-          )}
-        </nav>
-
         <main>
           <section className="section container shop-page-container">
             {selectedShopCategory === 'all' ? (
