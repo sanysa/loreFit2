@@ -677,7 +677,6 @@ function App() {
 
       setLastOrder(data.order)
       setCartItems([])
-      setDeliveryAddress('')
       setCurrentPage('order-success')
     } catch (error) {
       setOrderError('Не удалось оформить заказ. Проверьте данные и попробуйте снова.')
