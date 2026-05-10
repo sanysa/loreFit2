@@ -280,73 +280,44 @@ function App() {
   }
 
   useEffect(() => {
-    if (!showAddressModal) {
-      if (mapObjRef.current) {
-        mapObjRef.current.remove()
-        mapObjRef.current = null
-        mapMarkerRef.current = null
-      }
-      return
-    }
+    if (!showAddressModal) return
+    const L = window.L
+    if (!L || !mapContainerRef.current) return
+    if (mapObjRef.current) { mapObjRef.current.remove(); mapObjRef.current = null }
+    mapMarkerRef.current = null
 
-    const initMap = () => {
-      if (!mapContainerRef.current || mapObjRef.current) return
-      const L = window.L
-      const map = L.map(mapContainerRef.current).setView([43.238949, 76.889709], 13)
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-      }).addTo(map)
-      mapObjRef.current = map
+    const map = L.map(mapContainerRef.current, { zoomControl: true }).setView([43.238949, 76.889709], 13)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+      maxZoom: 19,
+    }).addTo(map)
+    mapObjRef.current = map
 
-      map.on('click', async (e) => {
-        const { lat, lng } = e.latlng
-        if (mapMarkerRef.current) {
-          mapMarkerRef.current.setLatLng([lat, lng])
-        } else {
-          mapMarkerRef.current = L.marker([lat, lng]).addTo(map)
-        }
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ru`
-          )
-          const data = await res.json()
-          const { road, house_number, suburb, city, town } = data.address || {}
-          const street = [road, house_number].filter(Boolean).join(', ')
-          const locality = city || town || suburb || ''
-          setAddrForm((prev) => ({ ...prev, street: [locality, street].filter(Boolean).join(', ') }))
-        } catch {
-          setAddrForm((prev) => ({ ...prev, street: `${lat.toFixed(5)}, ${lng.toFixed(5)}` }))
-        }
-      })
-    }
-
-    const loadLeaflet = () => {
-      if (window.L) { initMap(); return }
-      if (!document.getElementById('leaflet-css')) {
-        const link = document.createElement('link')
-        link.id = 'leaflet-css'
-        link.rel = 'stylesheet'
-        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
-        document.head.appendChild(link)
-      }
-      if (!document.getElementById('leaflet-js')) {
-        const s = document.createElement('script')
-        s.id = 'leaflet-js'
-        s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
-        s.onload = initMap
-        document.head.appendChild(s)
+    map.on('click', async (e) => {
+      const { lat, lng } = e.latlng
+      if (mapMarkerRef.current) {
+        mapMarkerRef.current.setLatLng([lat, lng])
       } else {
-        document.getElementById('leaflet-js').addEventListener('load', initMap)
+        mapMarkerRef.current = L.marker([lat, lng]).addTo(map)
       }
-    }
-    loadLeaflet()
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ru`
+        )
+        const data = await res.json()
+        const { road, house_number, city, town, village } = data.address || {}
+        const street = [road, house_number].filter(Boolean).join(', ')
+        const locality = city || town || village || ''
+        setAddrForm((prev) => ({ ...prev, street: [locality, street].filter(Boolean).join(', ') }))
+      } catch {
+        setAddrForm((prev) => ({ ...prev, street: `${lat.toFixed(5)}, ${lng.toFixed(5)}` }))
+      }
+    })
 
     return () => {
-      if (mapObjRef.current) {
-        mapObjRef.current.remove()
-        mapObjRef.current = null
-        mapMarkerRef.current = null
-      }
+      map.remove()
+      mapObjRef.current = null
+      mapMarkerRef.current = null
     }
   }, [showAddressModal])
   const categoryLabels = Object.fromEntries(
