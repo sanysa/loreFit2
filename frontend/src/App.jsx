@@ -104,7 +104,7 @@ const getNormalizedAdminCategory = (category) => {
 const shopCategories = [
   { key: 'discount',   label: 'Скидки',               img: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=300&q=70' },
   { key: 'meat',       label: 'Мясо и птица',          img: 'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=300&q=70' },
-  { key: 'sausage',    label: 'Колбасы',               img: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=300&q=70' },
+  { key: 'sausage',    label: 'Колбасы',               img: 'https://images.unsplash.com/photo-1544025162-d76538b2a787?w=300&q=70' },
   { key: 'fish',       label: 'Рыба и морепродукты',   img: 'https://images.unsplash.com/photo-1510130387422-82bed34b37e9?w=300&q=70' },
   { key: 'pasta',      label: 'Макароны и крупы',      img: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=300&q=70' },
   { key: 'sweets',     label: 'Сладости и выпечка',    img: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=300&q=70' },
@@ -121,7 +121,7 @@ const shopCategories = [
   { key: 'drinks',     label: 'Сок, вода и напитки',   img: 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?w=300&q=70' },
   { key: 'baking',     label: 'Всё для выпечки',       img: 'https://images.unsplash.com/photo-1612203985729-70726954388c?w=300&q=70' },
   { key: 'oils',       label: 'Масло и соусы',         img: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=300&q=70' },
-  { key: 'canned',     label: 'Консервы и соления',    img: 'https://images.unsplash.com/photo-1597362925123-77861d3fbac7?w=300&q=70' },
+  { key: 'canned',     label: 'Консервы и соления',    img: 'https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=300&q=70' },
   { key: 'snacks',     label: 'Чипсы, орехи, снэки',  img: 'https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=300&q=70' },
   { key: 'alcohol',    label: 'Алкоголь',              img: 'https://images.unsplash.com/photo-1516594915697-87eb3b1c14ea?w=300&q=70' },
   { key: 'chemistry',  label: 'Бытовая химия',         img: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=300&q=70' },
