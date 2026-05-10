@@ -132,7 +132,7 @@ function mapProductRow(row) {
     unitType: row.unit_type || "piece",
     imageUrls: row.image_urls || [],
     isActive: row.is_active,
-    barcode: row.barcode || "",
+    barcode: row.barcode || null,
     basePriceKzt: Number(row.base_price_kzt || row.price_kzt || 0),
     availabilityStatus: !row.is_active
       ? "inactive"
@@ -169,7 +169,7 @@ function normalizeProductPayload(body) {
     unitType: String(body.unitType || "piece").trim(),
     imageUrls,
     isActive: typeof body.isActive === "boolean" ? body.isActive : true,
-    barcode: String(body.barcode || "").trim(),
+    barcode: body.barcode ? String(body.barcode).trim() : "",
     basePriceKzt: Number(body.basePriceKzt || 0),
   };
 }
