@@ -1823,10 +1823,7 @@ function App() {
                 <button
                   className="primary pay-button"
                   type="button"
-                  onClick={() => {
-                    setDeliveryAddress([authUser?.country, authUser?.city].filter(Boolean).join(', '))
-                    setCurrentPage('checkout')
-                  }}
+                  onClick={() => setCurrentPage('checkout')}
                 >
                   Перейти к оформлению
                 </button>
