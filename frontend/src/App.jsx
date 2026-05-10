@@ -630,6 +630,14 @@ function App() {
     return `${Math.round(quantity)} ${unitLabels[unitType]}`
   }
 
+  const formatOrderItem = (item, productsArr) => {
+    const found = (productsArr || []).find((p) => p.productId === item.productId)
+    const unitType = found?.unitType || 'piece'
+    const label = unitLabels[unitType] || 'шт'
+    const qty = (unitType === 'kg' || unitType === 'l') ? item.quantity : Math.round(item.quantity)
+    return `${item.name} — ${qty} ${label}`
+  }
+
   const removeFromCart = (productId) => {
     setCartItems((prev) => prev.filter((item) => item.productId !== productId))
   }
@@ -2299,8 +2307,8 @@ function App() {
                               <p>{new Date(order.createdAt).toLocaleString('ru-RU')}</p>
                               <p>Статус: {orderStatusLabels[order.status] || order.status}</p>
                               <p>
-                                Состав: {(order.items || [])
-                                  .map((item) => `${item.name} × ${item.quantity}`)
+                                Товар: {(order.items || [])
+                                  .map((item) => formatOrderItem(item, products))
                                   .join(', ')}
                               </p>
                             </div>
@@ -2337,8 +2345,8 @@ function App() {
                               <p>{new Date(order.createdAt).toLocaleString('ru-RU')}</p>
                               <p>Статус: {orderStatusLabels[order.status] || order.status}</p>
                               <p>
-                                Состав: {(order.items || [])
-                                  .map((item) => `${item.name} × ${item.quantity}`)
+                                Товар: {(order.items || [])
+                                  .map((item) => formatOrderItem(item, products))
                                   .join(', ')}
                               </p>
                               {order.status === 'cancelled' && order.cancelReason && (
@@ -2748,8 +2756,8 @@ function App() {
                                 <p>Адрес доставки: {order.deliveryAddress || '—'}</p>
                               )}
                               <p>
-                                Состав: {(order.items || [])
-                                  .map((item) => `${item.name} × ${item.quantity}`)
+                                Товар: {(order.items || [])
+                                  .map((item) => formatOrderItem(item, adminProducts))
                                   .join(', ')}
                               </p>
                             </div>
@@ -2818,7 +2826,7 @@ function App() {
                                 <th>Дата</th>
                                 <th>Статус</th>
                                 <th>Получение</th>
-                                <th>Состав</th>
+                                <th>Товар</th>
                                 <th>Сумма</th>
                                 <th></th>
                               </tr>
@@ -2835,7 +2843,7 @@ function App() {
                                   </td>
                                   <td>{order.fulfillmentType === 'delivery' ? `Доставка${order.deliveryAddress ? ': ' + order.deliveryAddress : ''}` : 'Самовывоз'}</td>
                                   <td>
-                                    {(order.items || []).map((i) => `${i.name} × ${i.quantity}`).join(', ')}
+                                    {(order.items || []).map((i) => formatOrderItem(i, adminProducts)).join(', ')}
                                     {order.status === 'cancelled' && order.cancelReason && (
                                       <span style={{ display: 'block', fontSize: '0.78rem', color: '#888', marginTop: '0.2rem' }}>
                                         Причина: {order.cancelReason}
