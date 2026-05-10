@@ -945,8 +945,13 @@ app.post("/api/auth/register", async (req, res) => {
   const cleanCity = String(city || "").trim();
   const cleanPhone = String(phone || "").trim();
 
-  if (!cleanEmail || !cleanPassword || !cleanFirstName || !cleanLastName || !cleanCity) {
+  if (!cleanEmail || !cleanPassword || !cleanFirstName || !cleanLastName || !cleanCity || !cleanPhone) {
     return res.status(400).json({ message: "All fields are required" });
+  }
+
+  const phoneDigits = cleanPhone.replace(/\D/g, '');
+  if (phoneDigits.length !== 11 || phoneDigits[0] !== '7') {
+    return res.status(400).json({ message: "Invalid phone format" });
   }
 
   if (cleanPassword.length < 6) {
@@ -1002,6 +1007,7 @@ app.post("/api/auth/register", async (req, res) => {
         country: user.country,
         city: user.city,
         role: user.role,
+        phone: user.phone || '',
       },
     });
   } catch (error) {

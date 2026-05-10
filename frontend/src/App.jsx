@@ -1229,6 +1229,24 @@ function App() {
     setAuthForm((prev) => ({ ...prev, [name]: value }))
   }
 
+  const formatPhoneInput = (raw) => {
+    const digits = raw.replace(/\D/g, '')
+    let d = digits
+    if (d.length === 0) return ''
+    if (d[0] !== '7') d = '7' + d
+    d = d.slice(0, 11)
+    let out = '+' + d[0]
+    if (d.length > 1) out += ' ' + d.slice(1, 4)
+    if (d.length > 4) out += ' ' + d.slice(4, 7)
+    if (d.length > 7) out += ' ' + d.slice(7, 9)
+    if (d.length > 9) out += ' ' + d.slice(9, 11)
+    return out
+  }
+
+  const onPhoneChange = (e) => {
+    setAuthForm((prev) => ({ ...prev, phone: formatPhoneInput(e.target.value) }))
+  }
+
   const resetAuthMessages = () => {
     setAuthError('')
     setAuthSuccess('')
@@ -1246,7 +1264,11 @@ function App() {
     }
 
     if (normalized.includes('all fields are required')) {
-      return 'Пожалуйста, заполните все поля.'
+      return 'Пожалуйста, заполните все обязательные поля.'
+    }
+
+    if (normalized.includes('invalid phone format')) {
+      return 'Введите корректный номер телефона: +7 777 777 77 77'
     }
 
     if (normalized.includes('password must be at least 6 characters')) {
@@ -1270,6 +1292,18 @@ function App() {
   const onSubmitAuth = async (event) => {
     event.preventDefault()
     resetAuthMessages()
+
+    if (authMode === 'register') {
+      if (!authForm.firstName.trim()) { setAuthError('Введите имя.'); return }
+      if (!authForm.lastName.trim()) { setAuthError('Введите фамилию.'); return }
+      if (!authForm.city.trim()) { setAuthError('Введите город.'); return }
+      const phoneDigits = authForm.phone.replace(/\D/g, '')
+      if (phoneDigits.length !== 11) {
+        setAuthError('Введите корректный номер телефона: +7 777 777 77 77')
+        return
+      }
+    }
+
     setAuthLoading(true)
 
     const endpoint = authMode === 'register' ? '/api/auth/register' : '/api/auth/login'
@@ -1435,8 +1469,12 @@ function App() {
                     name="phone"
                     type="tel"
                     value={authForm.phone}
-                    onChange={updateAuthForm}
-                    placeholder="+7 700 000 00 00"
+                    onChange={onPhoneChange}
+                    onFocus={() => {
+                      if (!authForm.phone) setAuthForm(prev => ({ ...prev, phone: '+7 ' }))
+                    }}
+                    placeholder="+7 777 777 77 77"
+                    required
                   />
                 </>
               )}
