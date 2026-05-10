@@ -1901,7 +1901,6 @@ function App() {
                     </div>
 
                     <div ref={mapContainerRef} className="addr-map" />
-                    <p className="addr-map-hint">Кликните на карту, чтобы выбрать точку — адрес заполнится автоматически</p>
 
                     <div className="addr-form-grid">
                       <div className="addr-form-full">
