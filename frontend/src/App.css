@@ -1590,6 +1590,99 @@ h1 {
   .admin-image-previews { gap: 0.35rem; }
 }
 
+/* ── Mobile bottom navigation bar ─────────────────────────── */
+.mobile-bottom-nav {
+  display: none; /* hidden on desktop */
+}
+
+@media (max-width: 480px) {
+  /* hide top nav-links — bottom bar replaces them */
+  .nav-links { display: none; }
+  /* reduce top nav padding so header is minimal */
+  .nav { flex-wrap: nowrap; padding: 0.5rem 0; gap: 0.5rem; }
+  .auth-nav { gap: 0.4rem; }
+  .auth-nav .admin-nav-button { display: none; }
+
+  /* bottom bar */
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: #fff;
+    border-top: 1px solid #dce5ee;
+    box-shadow: 0 -2px 12px rgba(15, 79, 140, 0.08);
+    padding: 0 0 env(safe-area-inset-bottom, 0);
+  }
+
+  .mbn-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.18rem;
+    padding: 0.55rem 0.25rem 0.5rem;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    color: #7a99b8;
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.2;
+    transition: color 150ms;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mbn-item--active {
+    color: #0f4f8c;
+  }
+
+  .mbn-icon {
+    font-size: 1.35rem;
+    line-height: 1;
+    display: block;
+    position: relative;
+  }
+
+  .mbn-label {
+    font-size: 0.67rem;
+  }
+
+  .mbn-badge {
+    position: absolute;
+    top: -5px;
+    right: -8px;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    background: #e63946;
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 3px;
+    line-height: 1;
+  }
+
+  .mbn-dot {
+    position: absolute;
+    top: -3px;
+    right: -5px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #e63946;
+  }
+
+  /* push page content up so bottom bar doesn't overlap */
+  .page--shop { padding-bottom: 64px; }
+}
+
 /* touch: remove hover effects that look wrong on mobile */
 @media (hover: none) {
   .shop-catalog .add-to-cart-button:hover:not(:disabled) {
