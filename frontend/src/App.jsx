@@ -1426,7 +1426,7 @@ function App() {
 
             <form className="auth-form" onSubmit={onSubmitAuth}>
               <label className="field-label" htmlFor="email">
-                {authMode === 'register' ? 'Электронная почта' : 'Email или номер телефона'}
+                {authMode === 'register' ? 'Электронная почта' : 'Электронная почта или номер телефона'}
               </label>
               <input
                 className="date-input"
