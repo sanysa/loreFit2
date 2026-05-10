@@ -3226,30 +3226,6 @@ function App() {
           )}
         </nav>
 
-        <div className="hero-content container">
-          <div>
-            <p className="badge">Маркетплэйс продуктов и товаров</p>
-            <h1>Все необходимое для вашего дома</h1>
-            <p className="hero-text">
-              Широкий ассортимент овощей, фруктов и бытовой химии. Быстрая доставка и качественные товары для вашего дома.
-            </p>
-            <div className="hero-actions">
-              <button className="primary" onClick={() => setCurrentPage('shop')}>
-                Перейти в магазин
-              </button>
-            </div>
-          </div>
-
-          <div className="hero-card">
-            <p className="hero-card-title">Популярный товар</p>
-            <h3>Помидоры свежие</h3>
-            <p>Свежие помидоры с грядки, прямо доставленные вам домой.</p>
-            <div className="hero-meta">
-              <span>4.9 ★</span>
-              <span>1 240 покупок</span>
-            </div>
-          </div>
-        </div>
       </header>
 
       <main>
