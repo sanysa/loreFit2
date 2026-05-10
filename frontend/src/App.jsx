@@ -635,9 +635,8 @@ function App() {
     return `${Math.round(quantity)} ${unitLabels[unitType]}`
   }
 
-  const formatOrderItem = (item, productsArr) => {
-    const found = (productsArr || []).find((p) => p.productId === item.productId)
-    const unitType = found ? getNormalizedUnitType(found) : 'piece'
+  const formatOrderItem = (item) => {
+    const unitType = getNormalizedUnitType({ unitType: item.unitType, category: item.category, name: item.name })
     const label = unitLabels[unitType] || 'шт'
     const qty = (unitType === 'kg' || unitType === 'l') ? item.quantity : Math.round(item.quantity)
     return `${item.name} — ${qty} ${label}`
@@ -2314,7 +2313,7 @@ function App() {
                               <p><span className={`order-history-badge order-history-badge--${order.status}`}>{orderStatusLabels[order.status] || order.status}</span></p>
                               <p>
                                 Товар: {(order.items || [])
-                                  .map((item) => formatOrderItem(item, products))
+                                  .map((item) => formatOrderItem(item))
                                   .join(', ')}
                               </p>
                             </div>
@@ -2352,7 +2351,7 @@ function App() {
                               <p><span className={`order-history-badge order-history-badge--${order.status}`}>{orderStatusLabels[order.status] || order.status}</span></p>
                               <p>
                                 Товар: {(order.items || [])
-                                  .map((item) => formatOrderItem(item, products))
+                                  .map((item) => formatOrderItem(item))
                                   .join(', ')}
                               </p>
                               {order.status === 'cancelled' && order.cancelReason && (
@@ -2769,7 +2768,7 @@ function App() {
                               )}
                               <p>
                                 Товар: {(order.items || [])
-                                  .map((item) => formatOrderItem(item, adminProducts))
+                                  .map((item) => formatOrderItem(item))
                                   .join(', ')}
                               </p>
                             </div>
@@ -2859,7 +2858,7 @@ function App() {
                                   </td>
                                   <td>{order.fulfillmentType === 'delivery' ? `Доставка${order.deliveryAddress ? ': ' + order.deliveryAddress : ''}` : 'Самовывоз'}</td>
                                   <td>
-                                    {(order.items || []).map((i) => formatOrderItem(i, adminProducts)).join(', ')}
+                                    {(order.items || []).map((i) => formatOrderItem(i)).join(', ')}
                                     {order.status === 'cancelled' && order.cancelReason && (
                                       <span style={{ display: 'block', fontSize: '0.78rem', color: '#888', marginTop: '0.2rem' }}>
                                         Причина: {order.cancelReason}

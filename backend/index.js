@@ -456,7 +456,9 @@ app.get("/api/admin/orders", requireAdmin, async (req, res) => {
                 'productId', oi.product_id,
                 'name', oi.product_name,
                 'quantity', oi.quantity,
-                'priceKzt', oi.price_kzt
+                'priceKzt', oi.price_kzt,
+                'unitType', p.unit_type,
+                'category', p.category
               )
               ORDER BY oi.id
             ) FILTER (WHERE oi.id IS NOT NULL),
@@ -464,6 +466,7 @@ app.get("/api/admin/orders", requireAdmin, async (req, res) => {
           ) AS items
         FROM orders o
         LEFT JOIN order_items oi ON oi.order_id = o.id
+        LEFT JOIN products p ON p.id = oi.product_id
         LEFT JOIN users u ON u.id = o.user_id
         GROUP BY o.id, u.first_name, u.last_name, u.phone
         ORDER BY o.created_at DESC
@@ -866,7 +869,9 @@ app.get("/api/orders/active", requireAuth, async (req, res) => {
                 'productId', oi.product_id,
                 'name', oi.product_name,
                 'quantity', oi.quantity,
-                'priceKzt', oi.price_kzt
+                'priceKzt', oi.price_kzt,
+                'unitType', p.unit_type,
+                'category', p.category
               )
               ORDER BY oi.id
             ) FILTER (WHERE oi.id IS NOT NULL),
@@ -874,6 +879,7 @@ app.get("/api/orders/active", requireAuth, async (req, res) => {
           ) AS items
         FROM orders o
         LEFT JOIN order_items oi ON oi.order_id = o.id
+        LEFT JOIN products p ON p.id = oi.product_id
         WHERE o.user_id = $1
           AND o.status IN ('new', 'processing', 'paid', 'shipped_or_ready')
         GROUP BY o.id
@@ -914,7 +920,9 @@ app.get("/api/orders/history", requireAuth, async (req, res) => {
                 'productId', oi.product_id,
                 'name', oi.product_name,
                 'quantity', oi.quantity,
-                'priceKzt', oi.price_kzt
+                'priceKzt', oi.price_kzt,
+                'unitType', p.unit_type,
+                'category', p.category
               )
               ORDER BY oi.id
             ) FILTER (WHERE oi.id IS NOT NULL),
@@ -922,6 +930,7 @@ app.get("/api/orders/history", requireAuth, async (req, res) => {
           ) AS items
         FROM orders o
         LEFT JOIN order_items oi ON oi.order_id = o.id
+        LEFT JOIN products p ON p.id = oi.product_id
         WHERE o.user_id = $1
           AND o.status IN ('completed', 'cancelled')
         GROUP BY o.id
