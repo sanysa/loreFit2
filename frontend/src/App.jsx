@@ -1276,7 +1276,7 @@ function App() {
 
             <form className="auth-form" onSubmit={onSubmitAuth}>
               <label className="field-label" htmlFor="email">
-                Email
+                Электронная почта
               </label>
               <input
                 className="date-input"
@@ -1289,7 +1289,7 @@ function App() {
               />
 
               <label className="field-label" htmlFor="password">
-                Password
+                Пароль
               </label>
               <input
                 className="date-input"
@@ -1305,7 +1305,7 @@ function App() {
               {authMode === 'register' && (
                 <>
                   <label className="field-label" htmlFor="firstName">
-                    First name
+                    Имя
                   </label>
                   <input
                     className="date-input"
@@ -1318,7 +1318,7 @@ function App() {
                   />
 
                   <label className="field-label" htmlFor="lastName">
-                    Last name
+                    Фамилия
                   </label>
                   <input
                     className="date-input"
@@ -1331,7 +1331,7 @@ function App() {
                   />
 
                   <label className="field-label" htmlFor="country">
-                    Country
+                    Страна
                   </label>
                   <input
                     className="date-input"
@@ -1344,7 +1344,7 @@ function App() {
                   />
 
                   <label className="field-label" htmlFor="city">
-                    City
+                    Город
                   </label>
                   <input
                     className="date-input"
@@ -1935,7 +1935,7 @@ function App() {
                           <strong>{authUser?.lastName || '-'}</strong>
                         </div>
                         <div className="summary-row">
-                          <span>Email</span>
+                          <span>Электронная почта</span>
                           <strong>{authUser?.email || '-'}</strong>
                         </div>
                         <div className="summary-row">
