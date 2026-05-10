@@ -1368,29 +1368,6 @@ function App() {
                 : 'Войди в аккаунт по email и паролю.'}
             </p>
 
-            <div className="auth-switch">
-              <button
-                className={authMode === 'login' ? 'slot active' : 'slot'}
-                type="button"
-                onClick={() => {
-                  setAuthMode('login')
-                  resetAuthMessages()
-                }}
-              >
-                Вход
-              </button>
-              <button
-                className={authMode === 'register' ? 'slot active' : 'slot'}
-                type="button"
-                onClick={() => {
-                  setAuthMode('register')
-                  resetAuthMessages()
-                }}
-              >
-                Регистрация
-              </button>
-            </div>
-
             <form className="auth-form" onSubmit={onSubmitAuth}>
               <label className="field-label" htmlFor="email">
                 Электронная почта
@@ -1489,6 +1466,21 @@ function App() {
                     ? 'Зарегистрироваться'
                     : 'Войти'}
               </button>
+
+              <p className="auth-switch-link">
+                {authMode === 'login' ? 'Нет аккаунта?' : 'Уже есть аккаунт?'}
+                {' '}
+                <button
+                  type="button"
+                  className="auth-switch-link__btn"
+                  onClick={() => {
+                    setAuthMode(authMode === 'login' ? 'register' : 'login')
+                    resetAuthMessages()
+                  }}
+                >
+                  {authMode === 'login' ? 'Зарегистрироваться' : 'Войти'}
+                </button>
+              </p>
             </form>
           </section>
         </div>

@@ -464,6 +464,28 @@ h1 {
   gap: 0.55rem;
 }
 
+.auth-switch-link {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.auth-switch-link__btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #1a6b3c;
+  font-size: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.auth-switch-link__btn:hover {
+  color: #145c32;
+}
+
 .auth-error,
 .auth-success {
   margin: 0.8rem 0 0;
