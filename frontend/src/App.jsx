@@ -163,6 +163,7 @@ function App() {
     lastName: '',
     country: '',
     city: '',
+    phone: '',
   })
   const [products, setProducts] = useState([])
   const [productsLoading, setProductsLoading] = useState(false)
@@ -1306,6 +1307,7 @@ function App() {
         lastName: '',
         country: '',
         city: '',
+        phone: '',
       })
       setCurrentPage('home')
     } catch (error) {
@@ -1422,6 +1424,19 @@ function App() {
                     value={authForm.city}
                     onChange={updateAuthForm}
                     required
+                  />
+
+                  <label className="field-label" htmlFor="phone">
+                    Номер телефона
+                  </label>
+                  <input
+                    className="date-input"
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    value={authForm.phone}
+                    onChange={updateAuthForm}
+                    placeholder="+7 700 000 00 00"
                   />
                 </>
               )}
@@ -2588,6 +2603,10 @@ function App() {
                             <div>
                               <h3>Заказ #{order.id}</h3>
                               <p>{new Date(order.createdAt).toLocaleString('ru-RU')}</p>
+                              {(order.firstName || order.lastName) && (
+                                <p>Клиент: {[order.firstName, order.lastName].filter(Boolean).join(' ')}</p>
+                              )}
+                              {order.phone && <p>Телефон: {order.phone}</p>}
                               <p>Статус: {orderStatusLabels[order.status] || order.status}</p>
                               <p>Сумма: {formatKzt(order.totalAmountKzt)}</p>
                               <p>

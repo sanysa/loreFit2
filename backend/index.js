@@ -446,6 +446,9 @@ app.get("/api/admin/orders", requireAdmin, async (req, res) => {
           o.fulfillment_type,
           o.delivery_address,
           o.cancel_reason,
+          u.first_name,
+          u.last_name,
+          u.phone,
           COALESCE(
             json_agg(
               json_build_object(
@@ -460,7 +463,8 @@ app.get("/api/admin/orders", requireAdmin, async (req, res) => {
           ) AS items
         FROM orders o
         LEFT JOIN order_items oi ON oi.order_id = o.id
-        GROUP BY o.id
+        LEFT JOIN users u ON u.id = o.user_id
+        GROUP BY o.id, u.first_name, u.last_name, u.phone
         ORDER BY o.created_at DESC
       `
     );
@@ -475,6 +479,9 @@ app.get("/api/admin/orders", requireAdmin, async (req, res) => {
         fulfillmentType: row.fulfillment_type,
         deliveryAddress: row.delivery_address,
         cancelReason: row.cancel_reason || '',
+        firstName: row.first_name || '',
+        lastName: row.last_name || '',
+        phone: row.phone || '',
         items: row.items,
       })),
     });
@@ -928,7 +935,7 @@ app.get("/api/orders/history", requireAuth, async (req, res) => {
 });
 
 app.post("/api/auth/register", async (req, res) => {
-  const { email, password, firstName, lastName, country, city } = req.body;
+  const { email, password, firstName, lastName, country, city, phone } = req.body;
 
   const cleanEmail = normalizeEmail(email);
   const cleanPassword = String(password || "").trim();
@@ -936,15 +943,9 @@ app.post("/api/auth/register", async (req, res) => {
   const cleanLastName = String(lastName || "").trim();
   const cleanCountry = String(country || "").trim();
   const cleanCity = String(city || "").trim();
+  const cleanPhone = String(phone || "").trim();
 
-  if (
-    !cleanEmail ||
-    !cleanPassword ||
-    !cleanFirstName ||
-    !cleanLastName ||
-    !cleanCountry ||
-    !cleanCity
-  ) {
+  if (!cleanEmail || !cleanPassword || !cleanFirstName || !cleanLastName || !cleanCity) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
@@ -970,9 +971,9 @@ app.post("/api/auth/register", async (req, res) => {
 
     const insertResult = await pool.query(
       `
-        INSERT INTO users (email, password_hash, first_name, last_name, country, city, role)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING id, email, first_name, last_name, country, city, role
+        INSERT INTO users (email, password_hash, first_name, last_name, country, city, role, phone)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id, email, first_name, last_name, country, city, role, phone
       `,
       [
         cleanEmail,
@@ -982,6 +983,7 @@ app.post("/api/auth/register", async (req, res) => {
         cleanCountry,
         cleanCity,
         userRole,
+        cleanPhone,
       ]
     );
 
@@ -1021,7 +1023,7 @@ app.post("/api/auth/login", async (req, res) => {
   try {
     const userResult = await pool.query(
       `
-        SELECT id, email, password_hash, first_name, last_name, country, city, role
+        SELECT id, email, password_hash, first_name, last_name, country, city, role, phone
         FROM users
         WHERE email = $1
       `,
@@ -1056,6 +1058,7 @@ app.post("/api/auth/login", async (req, res) => {
         country: user.country,
         city: user.city,
         role: user.role,
+        phone: user.phone || '',
       },
     });
   } catch (error) {
@@ -1068,7 +1071,7 @@ app.get("/api/auth/me", requireAuth, async (req, res) => {
   try {
     const result = await pool.query(
       `
-        SELECT id, email, first_name, last_name, country, city, role
+        SELECT id, email, first_name, last_name, country, city, role, phone
         FROM users
         WHERE id = $1
       `,
@@ -1090,6 +1093,7 @@ app.get("/api/auth/me", requireAuth, async (req, res) => {
         country: user.country,
         city: user.city,
         role: user.role,
+        phone: user.phone || '',
       },
     });
   } catch (error) {
