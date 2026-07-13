@@ -1,70 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
 
-const hiddenProductNames = [
-  'Смарт-бутылка 750 мл',
-  'Протеин Whey Core 900 г',
-  'BCAA Amino Complex',
-]
-const legacyVegetableNames = new Set([
-  'Помидоры свежие',
-  'Огурцы хрустящие',
-  'Морковь сладкая',
-  'Картофель белый',
-  'Капуста свежая',
-  'Лук репчатый',
-  'Чеснок свежий',
-  'Перец болгарский',
-])
+const hiddenProductNames = []
 
-const productImageByName = {
-  'Помидоры свежие': 'https://images.unsplash.com/photo-1592924357228-85a36e2a32ca?auto=format&fit=crop&w=1200&q=80',
-  'Огурцы хрустящие': 'https://images.unsplash.com/photo-1569163139394-de4798aa62b3?auto=format&fit=crop&w=1200&q=80',
-  'Морковь сладкая': 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?auto=format&fit=crop&w=1200&q=80',
-  'Картофель белый': 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=1200&q=80',
-  'Капуста свежая': 'https://images.unsplash.com/photo-1553530666-ba953a5ad488?auto=format&fit=crop&w=1200&q=80',
-  'Лук репчатый': 'https://images.unsplash.com/photo-1518977956812-cd3dbadaaf31?auto=format&fit=crop&w=1200&q=80',
-  'Чеснок свежий': 'https://images.unsplash.com/photo-1608500218808-84753bdce5c7?auto=format&fit=crop&w=1200&q=80',
-  'Перец болгарский': 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=1200&q=80',
-  'Стиральный порошок 1 кг': 'https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?auto=format&fit=crop&w=1200&q=80',
-  'Жидкое мыло для посуды 500 мл': 'https://images.unsplash.com/photo-1583947582886-f40ec95dd752?auto=format&fit=crop&w=1200&q=80',
-  'Очиститель стекол 750 мл': 'https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=1200&q=80',
-  'Универсальный чистящий спрей 1 л': 'https://images.unsplash.com/photo-1585421514738-01798e348b17?auto=format&fit=crop&w=1200&q=80',
-  'Туалетная бумага 12 рулонов': 'https://images.unsplash.com/photo-1583947215259-38e31be8751f?auto=format&fit=crop&w=1200&q=80',
-  'Средство для мытья полов 1 л': 'https://images.unsplash.com/photo-1563453392212-326f5e854473?auto=format&fit=crop&w=1200&q=80',
-  'Отбеливатель хлорный 1 л': 'https://images.unsplash.com/photo-1604335399105-a0c585fd81a1?auto=format&fit=crop&w=1200&q=80',
-  'Средство для чистки ванны 750 мл': 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1200&q=80',
-  'Спрей от насекомых 400 мл': 'https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?auto=format&fit=crop&w=1200&q=80',
-  'Яблоки красные': '/product-images/apples-red.svg',
-  Бананы: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=1200&q=80',
-  Помидоры: '/product-images/tomatoes.svg',
-  Огурцы: '/product-images/cucumbers.svg',
-  Морковь: '/product-images/carrots.svg',
-  'Средство для мытья посуды': 'https://images.unsplash.com/photo-1583947582886-f40ec95dd752?auto=format&fit=crop&w=1200&q=80',
-  'Универсальный очиститель': 'https://images.unsplash.com/photo-1585421514738-01798e348b17?auto=format&fit=crop&w=1200&q=80',
-  'Стиральный порошок': 'https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?auto=format&fit=crop&w=1200&q=80',
-  'Чистящее средство для ванной': 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1200&q=80',
-  'Средство для чистки окон': 'https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=1200&q=80',
-  'Дезинфекционное средство': '/product-images/disinfectant.svg',
-  'Молоко коровье': 'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=1200&q=80',
-  'Печенье овсяное': 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=1200&q=80',
-  'Хлеб пшеничный': 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=1200&q=80',
-  Творог: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?auto=format&fit=crop&w=1200&q=80',
-  Сметана: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=1200&q=80',
-  'Масло сливочное': '/product-images/butter.svg',
-  'Мёд натуральный': 'https://images.unsplash.com/photo-1587049352851-8d4e89133924?auto=format&fit=crop&w=1200&q=80',
-  'Каша овсяная': 'https://images.unsplash.com/photo-1517673400267-0251440c45dc?auto=format&fit=crop&w=1200&q=80',
-}
 
 const attachProductImage = (product) => {
-  const fallbackImage = productImageByName[product.name]
   const unitType = getNormalizedUnitType(product)
-  const imageUrls =
-    fallbackImage
-      ? [fallbackImage]
-      : Array.isArray(product.imageUrls) && product.imageUrls.length > 0
-        ? product.imageUrls
-        : []
+  const imageUrls = Array.isArray(product.imageUrls) && product.imageUrls.length > 0
+    ? product.imageUrls
+    : []
 
   return {
     ...product,
@@ -74,56 +18,37 @@ const attachProductImage = (product) => {
 }
 
 const getNormalizedUnitType = (product) => {
-  if (product.category === 'vegetables' || product.category === 'fruits' || legacyVegetableNames.has(product.name)) {
-    return 'kg'
-  }
-
-  if (product.category === 'drinks' || product.unitType === 'ml' || product.unitType === 'l') {
-    return 'l'
-  }
-
   return product.unitType || 'piece'
 }
 
 const VALID_SHOP_CATEGORY_KEYS = [
-  'meat','sausage','fish','pasta','sweets','frozen','spices',
-  'tea_coffee','ready_food','kids','home','pets','dairy',
-  'vegetables','bread','drinks','baking','oils','canned',
-  'snacks','alcohol','chemistry','cosmetics','general',
+  'cardio','strength','yoga','boxing','running',
+  'cycling','swimming','team_sports','outdoor',
+  'clothing','footwear','nutrition','accessories',
+  'protection','general',
 ]
 
 const getNormalizedAdminCategory = (category) => {
-  if (category === 'equipment' || category === 'sports_inventory') return 'vegetables'
-  if (category === 'nutrition' || category === 'sports_nutrition') return 'chemistry'
   if (VALID_SHOP_CATEGORY_KEYS.includes(category)) return category
   return 'general'
 }
 
 const shopCategories = [
-  { key: 'discount',   label: 'Скидки',               img: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=300&q=70' },
-  { key: 'meat',       label: 'Мясо и птица',          img: 'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=300&q=70' },
-  { key: 'sausage',    label: 'Колбасы',               img: 'https://assets.allcafe.ru/pic/566461154996.png' },
-  { key: 'fish',       label: 'Рыба и морепродукты',   img: 'https://images.unsplash.com/photo-1510130387422-82bed34b37e9?w=300&q=70' },
-  { key: 'pasta',      label: 'Макароны и крупы',      img: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=300&q=70' },
-  { key: 'sweets',     label: 'Сладости и выпечка',    img: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=300&q=70' },
-  { key: 'frozen',     label: 'Заморозка',             img: 'https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?w=300&q=70' },
-  { key: 'spices',     label: 'Сахар, соль, специи',   img: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&q=70' },
-  { key: 'tea_coffee', label: 'Чай и кофе',            img: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=300&q=70' },
-  { key: 'ready_food', label: 'Готовая еда',           img: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=300&q=70' },
-  { key: 'kids',       label: 'Детские товары',        img: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=300&q=70' },
-  { key: 'home',       label: 'Товары для дома',       img: 'https://images.unsplash.com/photo-1583845112203-29329902332e?w=300&q=70' },
-  { key: 'pets',       label: 'Товары для животных',   img: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=300&q=70' },
-  { key: 'dairy',      label: 'Молочные продукты',     img: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=300&q=70' },
-  { key: 'vegetables', label: 'Овощи и фрукты',        img: 'https://images.unsplash.com/photo-1518843875459-f738682238a6?w=300&q=70' },
-  { key: 'bread',      label: 'Хлебные изделия',       img: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=300&q=70' },
-  { key: 'drinks',     label: 'Сок, вода и напитки',   img: 'https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?w=300&q=70' },
-  { key: 'baking',     label: 'Всё для выпечки',       img: 'https://images.unsplash.com/photo-1612203985729-70726954388c?w=300&q=70' },
-  { key: 'oils',       label: 'Масло и соусы',         img: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=300&q=70' },
-  { key: 'canned',     label: 'Консервы и соления',    img: 'https://sect.ru/upload/information_system_4/1/7/7/item_177/item_177.jpg' },
-  { key: 'snacks',     label: 'Чипсы, орехи, снэки',  img: 'https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=300&q=70' },
-  { key: 'alcohol',    label: 'Алкоголь',              img: 'https://images.unsplash.com/photo-1516594915697-87eb3b1c14ea?w=300&q=70' },
-  { key: 'chemistry',  label: 'Бытовая химия',         img: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=300&q=70' },
-  { key: 'cosmetics',  label: 'Косметика и гигиена',   img: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=300&q=70' },
+  { key: 'discount',    label: 'Скидки',               img: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=300&q=70' },
+  { key: 'cardio',      label: 'Кардио',               img: 'https://images.unsplash.com/photo-1538805060514-97d9cc17730c?w=300&q=70' },
+  { key: 'strength',    label: 'Силовые тренажёры',    img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=300&q=70' },
+  { key: 'yoga',        label: 'Йога и фитнес',        img: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=300&q=70' },
+  { key: 'boxing',      label: 'Бокс и единоборства',  img: 'https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=300&q=70' },
+  { key: 'running',     label: 'Бег',                  img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&q=70' },
+  { key: 'cycling',     label: 'Велоспорт',            img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&q=70' },
+  { key: 'swimming',    label: 'Плавание',             img: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=300&q=70' },
+  { key: 'team_sports', label: 'Командные виды спорта',img: 'https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=300&q=70' },
+  { key: 'outdoor',     label: 'Активный отдых',       img: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300&q=70' },
+  { key: 'clothing',    label: 'Одежда',               img: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300&q=70' },
+  { key: 'footwear',    label: 'Обувь',                img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&q=70' },
+  { key: 'nutrition',   label: 'Спортивное питание',   img: 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=300&q=70' },
+  { key: 'accessories', label: 'Аксессуары',           img: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?w=300&q=70' },
+  { key: 'protection',  label: 'Защита',               img: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&q=70' },
 ]
 
 function App() {

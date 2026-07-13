@@ -35,11 +35,7 @@ const adminEmails = new Set(
     .map((item) => item.trim().toLowerCase())
     .filter(Boolean)
 );
-const hiddenProductNames = [
-  "Смарт-бутылка 750 мл",
-  "Протеин Whey Core 900 г",
-  "BCAA Amino Complex",
-];
+const hiddenProductNames = [];
 
 app.use(cors());
 app.use(express.json());
@@ -143,10 +139,10 @@ function mapProductRow(row) {
 }
 
 const ALLOWED_CATEGORIES = [
-  "meat", "sausage", "fish", "pasta", "sweets", "frozen", "spices",
-  "tea_coffee", "ready_food", "kids", "home", "pets", "dairy",
-  "vegetables", "bread", "drinks", "baking", "oils", "canned",
-  "snacks", "alcohol", "chemistry", "cosmetics", "general",
+  "cardio", "strength", "yoga", "boxing", "running",
+  "cycling", "swimming", "team_sports", "outdoor",
+  "clothing", "footwear", "nutrition", "accessories",
+  "protection", "general",
 ];
 const ALLOWED_UNIT_TYPES = ["piece", "kg", "ml", "g", "l"];
 
