@@ -1,3 +1,8 @@
+-- Remove all old food products first (before adding constraint)
+DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders);
+DELETE FROM orders;
+DELETE FROM products;
+
 -- Drop old constraint and add sports categories
 ALTER TABLE products DROP CONSTRAINT IF EXISTS products_category_check;
 ALTER TABLE products ADD CONSTRAINT products_category_check
@@ -7,11 +12,6 @@ ALTER TABLE products ADD CONSTRAINT products_category_check
     'clothing','footwear','nutrition','accessories',
     'protection','general'
   ]));
-
--- Remove all old food products
-DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders);
-DELETE FROM orders;
-DELETE FROM products;
 
 -- Seed sports products
 INSERT INTO products (name, category, description, price_kzt, stock_quantity, unit_type, image_urls, is_active, discount_price_kzt, use_discount, barcode, base_price_kzt) VALUES

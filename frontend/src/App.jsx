@@ -1491,7 +1491,6 @@ function App() {
       <div className="page page--shop">
         <header className="hero shop-hero">
           <nav className="nav container shop-nav">
-            <div className="brand"><img src="/logo.png" alt="Для Народа" className="brand-logo" /></div>
             <div className="nav-links">
               <button className="nav-link-button" type="button" onClick={() => setCurrentPage('home')}>
                 Главная
@@ -1620,75 +1619,82 @@ function App() {
                 {productsLoading && <p className="booking-text">Загрузка товаров...</p>}
                 {productsError && <p className="auth-error">{productsError}</p>}
 
-                <div className="grid cards-4 shop-grid">
-                  {sortedProducts.map((product) => (
-                    <article
-                      key={product.id}
-                      className={`product-card product-card-clickable${product.useDiscount ? ' product-card--has-discount' : ''}`}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => openProductDetails(product.id)}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault()
-                          openProductDetails(product.id)
-                        }
-                      }}
-                    >
-                      <img className="product-image" src={product.imageUrls?.[0]} alt={product.name} />
-                      <h3>{product.name}</h3>
-                      <p>{product.description}</p>
-                      <div className="product-footer">
-                        <div>
-                          {product.useDiscount ? (
-                            <>
-                              <div style={{ textDecoration: 'line-through', fontSize: '0.8em', color: '#888' }}>
-                                {formatKzt(product.priceKzt)}
-                              </div>
-                              <strong style={{ color: 'red' }}>{formatKzt(product.discountPriceKzt)}</strong>
-                            </>
-                          ) : (
-                            <strong>{formatKzt(product.priceKzt)}</strong>
+                <div className="pcard-grid">
+                  {sortedProducts.map((product) => {
+                    const cartItem = cartItems.find((i) => i.productId === product.id)
+                    const unitType = getProductUnitType(product)
+                    const increment = getQuantityIncrement(unitType)
+                    const discountPct = product.useDiscount
+                      ? Math.round((1 - product.discountPriceKzt / product.priceKzt) * 100)
+                      : 0
+                    const inStock = product.availabilityStatus === 'in_stock'
+                    return (
+                      <article
+                        key={product.id}
+                        className={`pcard${product.useDiscount ? ' pcard--sale' : ''}${!inStock ? ' pcard--oos' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => openProductDetails(product.id)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openProductDetails(product.id) } }}
+                      >
+                        <div className="pcard-img-wrap">
+                          {product.imageUrls?.[0]
+                            ? <img className="pcard-img" src={product.imageUrls[0]} alt={product.name} loading="lazy" />
+                            : <div className="pcard-img-placeholder" />
+                          }
+                          {product.useDiscount && discountPct > 0 && (
+                            <span className="pcard-discount-badge">−{discountPct}%</span>
                           )}
-                          <small>за {unitLabels[getProductUnitType(product)]}</small>
+                          {!inStock && (
+                            <span className="pcard-oos-badge">Нет в наличии</span>
+                          )}
                         </div>
-                        {(() => {
-                          const cartItem = cartItems.find((i) => i.productId === product.id)
-                          const unitType = getProductUnitType(product)
-                          const increment = getQuantityIncrement(unitType)
-                          if (cartItem) {
-                            return (
-                              <div className="card-qty-stepper" onClick={(e) => e.stopPropagation()}>
+                        <div className="pcard-body">
+                          <h3 className="pcard-name">{product.name}</h3>
+                          <p className="pcard-desc">{product.description}</p>
+                          <div className="pcard-footer">
+                            <div className="pcard-price">
+                              {product.useDiscount ? (
+                                <>
+                                  <span className="pcard-price-old">{formatKzt(product.priceKzt)}</span>
+                                  <strong className="pcard-price-sale">{formatKzt(product.discountPriceKzt)}</strong>
+                                </>
+                              ) : (
+                                <strong className="pcard-price-cur">{formatKzt(product.priceKzt)}</strong>
+                              )}
+                              <span className="pcard-unit">/ {unitLabels[unitType]}</span>
+                            </div>
+                            {cartItem ? (
+                              <div className="pcard-stepper" onClick={(e) => e.stopPropagation()}>
                                 <button
-                                  className="card-qty-btn"
+                                  className="pcard-step-btn"
                                   type="button"
                                   onClick={() => changeCartQuantity(product.id, parseFloat((cartItem.quantity - increment).toFixed(1)))}
                                 >−</button>
-                                <span className="card-qty-value">{getQuantityDisplay(cartItem.quantity, cartItem.unitType)}</span>
+                                <span className="pcard-step-val">{getQuantityDisplay(cartItem.quantity, cartItem.unitType)}</span>
                                 <button
-                                  className="card-qty-btn"
+                                  className="pcard-step-btn"
                                   type="button"
                                   disabled={cartItem.quantity >= product.stockQuantity}
                                   onClick={() => changeCartQuantity(product.id, parseFloat((cartItem.quantity + increment).toFixed(1)))}
                                 >+</button>
                               </div>
-                            )
-                          }
-                          return (
-                            <button
-                              className="card-qty-add"
-                              type="button"
-                              disabled={product.availabilityStatus !== 'in_stock'}
-                              onClick={(event) => {
-                                event.stopPropagation()
-                                addToCart(product)
-                              }}
-                            >+</button>
-                          )
-                        })()}
-                      </div>
-                    </article>
-                  ))}
+                            ) : (
+                              <button
+                                className="pcard-add-btn"
+                                type="button"
+                                disabled={!inStock}
+                                onClick={(e) => { e.stopPropagation(); addToCart(product) }}
+                              >
+                                <span className="pcard-add-icon">+</span>
+                                <span>В корзину</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </article>
+                    )
+                  })}
                 </div>
 
                 {!productsLoading && sortedProducts.length === 0 && (
@@ -2055,7 +2061,6 @@ function App() {
       <div className="page">
         <header className="hero shop-hero">
           <nav className="nav container shop-nav">
-            <div className="brand"><img src="/logo.png" alt="Для Народа" className="brand-logo" /></div>
             <div className="nav-links">
               <button className="nav-link-button" type="button" onClick={() => setCurrentPage('home')}>
                 Главная
@@ -3276,7 +3281,6 @@ function App() {
     <div className="page">
       <header className="hero">
         <nav className="nav container">
-          <div className="brand"><img src="/logo.png" alt="Для Народа" className="brand-logo" /></div>
           <div className="nav-links">
             <button className="nav-link-button" type="button" onClick={() => setCurrentPage('shop')}>
               Магазин
