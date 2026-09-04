@@ -139,8 +139,7 @@ function mapProductRow(row) {
 }
 
 const ALLOWED_CATEGORIES = [
-  "cardio", "strength", "yoga", "boxing", "running",
-  "cycling", "swimming", "team_sports", "outdoor",
+  "cardio", "strength", "yoga", "running", "outdoor",
   "clothing", "footwear", "nutrition", "accessories",
   "protection", "general",
 ];

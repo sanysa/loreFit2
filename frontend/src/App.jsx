@@ -22,8 +22,7 @@ const getNormalizedUnitType = (product) => {
 }
 
 const VALID_SHOP_CATEGORY_KEYS = [
-  'cardio','strength','yoga','boxing','running',
-  'cycling','swimming','team_sports','outdoor',
+  'cardio','strength','yoga','running','outdoor',
   'clothing','footwear','nutrition','accessories',
   'protection','general',
 ]
@@ -38,11 +37,7 @@ const shopCategories = [
   { key: 'cardio',      label: 'Кардио',               img: 'https://images.unsplash.com/photo-1538805060514-97d9cc17730c?w=300&q=70' },
   { key: 'strength',    label: 'Силовые тренажёры',    img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=300&q=70' },
   { key: 'yoga',        label: 'Йога и фитнес',        img: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=300&q=70' },
-  { key: 'boxing',      label: 'Бокс и единоборства',  img: 'https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=300&q=70' },
-  { key: 'running',     label: 'Бег',                  img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&q=70' },
-  { key: 'cycling',     label: 'Велоспорт',            img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&q=70' },
-  { key: 'swimming',    label: 'Плавание',             img: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=300&q=70' },
-  { key: 'team_sports', label: 'Командные виды спорта',img: 'https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=300&q=70' },
+  { key: 'running',     label: 'Бег',                  img: 'https://images.unsplash.com/photo-1486218119243-13883505764c?w=300&q=70' },
   { key: 'outdoor',     label: 'Активный отдых',       img: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300&q=70' },
   { key: 'clothing',    label: 'Одежда',               img: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300&q=70' },
   { key: 'footwear',    label: 'Обувь',                img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&q=70' },
@@ -72,7 +67,7 @@ function App() {
       text: 'Отличный выбор товаров. Доставка очень быстрая!',
     },
   ]
-  const [currentPage, setCurrentPage] = useState('home')
+  const [currentPage, setCurrentPage] = useState('shop')
   const [authMode, setAuthMode] = useState('login')
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState('')
@@ -1157,7 +1152,7 @@ function App() {
       localStorage.removeItem('lorefit_user')
       localStorage.removeItem('lorefit_cart')
       setAuthUser(null)
-      setCurrentPage('home')
+      setCurrentPage('shop')
     } catch (error) {
       setAccountDeleteError('Не удалось удалить аккаунт. Попробуйте позже.')
     } finally {
@@ -1227,7 +1222,7 @@ function App() {
     localStorage.removeItem('lorefit_token')
     localStorage.removeItem('lorefit_user')
     setAuthUser(null)
-    setCurrentPage('home')
+    setCurrentPage('shop')
   }
 
   const startProfileEdit = () => {
@@ -1318,7 +1313,7 @@ function App() {
       localStorage.setItem('lorefit_token', data.token)
       localStorage.setItem('lorefit_user', JSON.stringify(data.user))
       setAuthUser(data.user)
-      setAuthSuccess(authMode === 'register' ? 'Registration successful' : 'Login successful')
+      setAuthSuccess(authMode === 'register' ? 'Регистрация выполнена' : 'Вход выполнен')
       setAuthForm({
         email: '',
         password: '',
@@ -1328,7 +1323,7 @@ function App() {
         city: '',
         phone: '',
       })
-      setCurrentPage('home')
+      setCurrentPage('shop')
     } catch (error) {
       setAuthError(getRussianAuthError(error.message))
     } finally {
@@ -1340,8 +1335,8 @@ function App() {
     return (
       <div className="booking-page">
         <div className="booking-shell container">
-          <button className="back-link" type="button" onClick={() => setCurrentPage('home')}>
-            ← Назад на главную
+          <button className="back-link" type="button" onClick={() => setCurrentPage('shop')}>
+            ← Назад в магазин
           </button>
 
           <section className="auth-card">
@@ -1492,8 +1487,8 @@ function App() {
         <header className="hero shop-hero">
           <nav className="nav container shop-nav">
             <div className="nav-links">
-              <button className="nav-link-button" type="button" onClick={() => setCurrentPage('home')}>
-                Главная
+              <button className="brand-logo" type="button" onClick={() => setCurrentPage('shop')} aria-label="lore evolution — в магазин">
+                <img src="/logo.jpg" alt="lore evolution" />
               </button>
               <button className="nav-link-button" type="button" onClick={() => setCurrentPage('shop')}>
                 Товары
@@ -2045,10 +2040,10 @@ function App() {
               type="button"
               onClick={() => {
                 setNewOrderNotification(true)
-                setCurrentPage('home')
+                setCurrentPage('shop')
               }}
             >
-              Вернуться на главную
+              Вернуться в магазин
             </button>
           </section>
         </div>
@@ -2062,8 +2057,8 @@ function App() {
         <header className="hero shop-hero">
           <nav className="nav container shop-nav">
             <div className="nav-links">
-              <button className="nav-link-button" type="button" onClick={() => setCurrentPage('home')}>
-                Главная
+              <button className="brand-logo" type="button" onClick={() => setCurrentPage('shop')} aria-label="lore evolution — в магазин">
+                <img src="/logo.jpg" alt="lore evolution" />
               </button>
               <button className="nav-link-button" type="button" onClick={() => setCurrentPage('shop')}>
                 Товары
@@ -2362,8 +2357,8 @@ function App() {
     return (
       <div className="booking-page">
         <div className="booking-shell container">
-          <button className="back-link" type="button" onClick={() => setCurrentPage('home')}>
-            ← Назад на главную
+          <button className="back-link" type="button" onClick={() => setCurrentPage('shop')}>
+            ← Назад в магазин
           </button>
 
           <section className="shop-card">
@@ -3277,199 +3272,11 @@ function App() {
     )
   }
 
-  return (
-    <div className="page">
-      <header className="hero">
-        <nav className="nav container">
-          <div className="nav-links">
-            <button className="nav-link-button" type="button" onClick={() => setCurrentPage('shop')}>
-              Магазин
-            </button>
-            {authUser && (
-              <button
-                className="nav-link-button nav-link-button--notify"
-                type="button"
-                onClick={() => {
-                  setNewOrderNotification(false)
-                  setCurrentPage('account')
-                  loadOrdersData()
-                }}
-              >
-                Личный кабинет
-                {newOrderNotification && <span className="nav-notify-dot" />}
-              </button>
-            )}
-            <button
-              className="nav-link-button nav-cart-button"
-              type="button"
-              aria-label={`Корзина, товаров: ${cartItemsCount}`}
-              onClick={() => setCurrentPage('cart')}
-            >
-              <span className="nav-cart-icon" aria-hidden="true">
-                🛒
-              </span>
-              <span className="nav-cart-label">Корзина</span>
-              <span className="nav-cart-count">{cartItemsCount}</span>
-            </button>
-          </div>
-          {authUser ? (
-            <div className="auth-nav">
-              <span className="auth-user">{authUser.firstName}</span>
-              <button className="nav-button" type="button" onClick={onLogout}>
-                Выйти
-              </button>
-              {isAdmin && (
-                <button
-                  className="nav-button admin-nav-button"
-                  type="button"
-                  onClick={() => {
-                    setCurrentPage('admin-panel')
-                    loadAdminData()
-                  }}
-                >
-                  Перейти в консоль администратора
-                </button>
-              )}
-            </div>
-          ) : (
-            <button className="nav-button" type="button" onClick={() => setCurrentPage('auth')}>
-              Войти
-            </button>
-          )}
-        </nav>
-
-      </header>
-
-      <main>
-        <section className="section container" id="products">
-          <div className="section-head">
-            <h2>Популярные товары</h2>
-            <p>Выбирайте из нашего ассортимента товаров для дома и повседневных покупок.</p>
-          </div>
-          <div className="grid cards-4">
-            {products.slice(0, 4).map((product) => (
-              <article key={product.id} className={`card-item${product.useDiscount ? ' card-item--has-discount' : ''}`}>
-                {product.imageUrls[0] && (
-                  <img
-                    className="card-item-img"
-                    src={product.imageUrls[0]}
-                    alt={product.name}
-                    loading="lazy"
-                  />
-                )}
-                <div className="card-item-body">
-                  <h3>{product.name}</h3>
-                  <p>{product.description}</p>
-                  {product.useDiscount ? (
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ textDecoration: 'line-through', fontSize: '0.8em', color: '#888' }}>
-                        {formatKzt(product.priceKzt)}
-                      </span>
-                      <span style={{ color: 'red', fontWeight: 'bold' }}>{formatKzt(product.discountPriceKzt)}</span>
-                    </div>
-                  ) : (
-                    <span>{formatKzt(product.priceKzt)}</span>
-                  )}
-                  <button
-                    className="primary category-buy-button"
-                    type="button"
-                    onClick={() => openProductDetails(product.id)}
-                  >
-                    Посмотреть товар
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="section section-soft" id="about">
-          <div className="container">
-            <div className="section-head">
-              <h2>О нашем магазине</h2>
-              <p>Мы предлагаем качественные товары для дома, кухни и ежедневного использования.</p>
-            </div>
-            <div className="grid cards-3">
-              <article className="trainer-card">
-                <div className="avatar" aria-hidden="true">🏆</div>
-                <h3>Качественные товары</h3>
-                <p>Только проверенные бренды и высокое качество.</p>
-                <span>100% гарантия</span>
-              </article>
-              <article className="trainer-card">
-                <div className="avatar" aria-hidden="true">🚚</div>
-                <h3>Быстрая доставка</h3>
-                <p>Доставка по всему Казахстану в кратчайшие сроки.</p>
-                <span>От 1 дня</span>
-              </article>
-              <article className="trainer-card">
-                <div className="avatar" aria-hidden="true">💪</div>
-                <h3>Для всех уровней</h3>
-                <p>Товары для начинающих и профессионалов.</p>
-                <span>Широкий ассортимент</span>
-              </article>
-            </div>
-          </div>
-        </section>
-
-        <section className="section container" id="how">
-          <div className="section-head">
-            <h2>Как купить</h2>
-          </div>
-          <div className="grid cards-3 steps">
-            <article className="step-card">
-              <div className="step-number">01</div>
-              <h3>Выберите товар</h3>
-              <p>Просмотрите наш каталог и добавьте товары в корзину.</p>
-            </article>
-            <article className="step-card">
-              <div className="step-number">02</div>
-              <h3>Оформите заказ</h3>
-              <p>Укажите адрес доставки и оплатите удобным способом.</p>
-            </article>
-            <article className="step-card">
-              <div className="step-number">03</div>
-              <h3>Получите товар</h3>
-              <p>Мы доставим ваш заказ быстро и качественно.</p>
-            </article>
-          </div>
-        </section>
-
-        <section className="section container" id="reviews">
-          <div className="section-head">
-            <h2>Что говорят пользователи</h2>
-          </div>
-          <div className="grid cards-2">
-            {reviews.map((review) => (
-              <blockquote key={review.author} className="review-card">
-                <p>“{review.text}”</p>
-                <cite>{review.author}</cite>
-              </blockquote>
-            ))}
-          </div>
-        </section>
-      </main>
-
-      <section className="cta">
-        <div className="container cta-inner">
-          <div>
-            <h2>Начните покупки уже сегодня</h2>
-            <p>Зарегистрируйтесь и получите доступ к полному ассортименту товаров.</p>
-          </div>
-          <button className="primary" onClick={() => setCurrentPage('shop')}>
-            Перейти в магазин
-          </button>
-        </div>
-      </section>
-
-      <footer className="site-footer">
-        <div className="container">
-          <span>Техническая поддержка:</span>
-          <a href="tel:+87000000000" className="site-footer-phone">8 700 000-00-00</a>
-        </div>
-      </footer>
-    </div>
-  )
+  // Главный экран скрыт: любой неизвестный маршрут ведёт в магазин.
+  if (currentPage !== 'shop') {
+    setCurrentPage('shop')
+  }
+  return null
 }
 
 export default App
