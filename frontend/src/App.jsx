@@ -21,31 +21,6 @@ const getNormalizedUnitType = (product) => {
   return product.unitType || 'piece'
 }
 
-const VALID_SHOP_CATEGORY_KEYS = [
-  'cardio','strength','yoga','running','outdoor',
-  'clothing','footwear','nutrition','accessories',
-  'protection','general',
-]
-
-const getNormalizedAdminCategory = (category) => {
-  if (VALID_SHOP_CATEGORY_KEYS.includes(category)) return category
-  return 'general'
-}
-
-const shopCategories = [
-  { key: 'discount',    label: 'Скидки',               img: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=300&q=70' },
-  { key: 'cardio',      label: 'Кардио',               img: 'https://images.unsplash.com/photo-1538805060514-97d9cc17730c?w=300&q=70' },
-  { key: 'strength',    label: 'Силовые тренажёры',    img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=300&q=70' },
-  { key: 'yoga',        label: 'Йога и фитнес',        img: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=300&q=70' },
-  { key: 'running',     label: 'Бег',                  img: 'https://images.unsplash.com/photo-1486218119243-13883505764c?w=300&q=70' },
-  { key: 'outdoor',     label: 'Активный отдых',       img: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300&q=70' },
-  { key: 'clothing',    label: 'Одежда',               img: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300&q=70' },
-  { key: 'footwear',    label: 'Обувь',                img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&q=70' },
-  { key: 'nutrition',   label: 'Спортивное питание',   img: 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=300&q=70' },
-  { key: 'accessories', label: 'Аксессуары',           img: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?w=300&q=70' },
-  { key: 'protection',  label: 'Защита',               img: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&q=70' },
-]
-
 function App() {
   const apiBaseUrl = import.meta.env.VITE_API_URL ?? ''
   const paymentUrl = 'https://pay.kaspi.kz/pay/klrytula'
@@ -88,6 +63,8 @@ function App() {
   const [products, setProducts] = useState([])
   const [productsLoading, setProductsLoading] = useState(false)
   const [productsError, setProductsError] = useState('')
+  const [categories, setCategories] = useState([])
+  const [categoriesLoading, setCategoriesLoading] = useState(false)
   const [shopSearchQuery, setShopSearchQuery] = useState('')
   const [shopPriceSort, setShopPriceSort] = useState('default')
   const [selectedShopCategory, setSelectedShopCategory] = useState('all')
@@ -129,6 +106,11 @@ function App() {
   const [adminTab, setAdminTab] = useState('products')
   const [adminEditingProductId, setAdminEditingProductId] = useState(null)
   const [adminProductModalOpen, setAdminProductModalOpen] = useState(false)
+  const [adminEditingCategoryId, setAdminEditingCategoryId] = useState(null)
+  const [adminCategoryModalOpen, setAdminCategoryModalOpen] = useState(false)
+  const [adminCategoryForm, setAdminCategoryForm] = useState({ label: '', imageUrl: '' })
+  const [adminDeleteCategoryId, setAdminDeleteCategoryId] = useState(null)
+  const [categoryImageUploading, setCategoryImageUploading] = useState(false)
   const barcodeInputRef = useRef(null)
   const mapContainerRef = useRef(null)
   const mapObjRef = useRef(null)
@@ -246,9 +228,15 @@ function App() {
       mapMarkerRef.current = null
     }
   }, [showAddressModal])
-  const categoryLabels = Object.fromEntries(
-    shopCategories.filter((c) => c.key !== 'discount').map((c) => [c.key, c.label])
-  )
+  const categoryLabels = {
+    ...Object.fromEntries(categories.map((c) => [c.key, c.label])),
+    general: 'Общее',
+  }
+
+  const getNormalizedAdminCategory = (category) => {
+    if (category === 'general' || categories.some((c) => c.key === category)) return category
+    return 'general'
+  }
 
   const unitLabels = {
     piece: 'шт',
@@ -384,6 +372,29 @@ function App() {
 
   useEffect(() => {
     refreshProducts()
+  }, [apiBaseUrl])
+
+  const refreshCategories = async () => {
+    setCategoriesLoading(true)
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/categories`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to load categories')
+      }
+
+      setCategories(data.categories || [])
+    } catch (error) {
+      // Категории — второстепенные данные для оформления магазина, без блокирующей ошибки
+    } finally {
+      setCategoriesLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    refreshCategories()
   }, [apiBaseUrl])
 
   useEffect(() => {
@@ -1024,6 +1035,124 @@ function App() {
     }
   }
 
+  const resetAdminCategoryForm = () => {
+    setAdminEditingCategoryId(null)
+    setAdminCategoryModalOpen(false)
+    setAdminCategoryForm({ label: '', imageUrl: '' })
+  }
+
+  const editAdminCategory = (category) => {
+    setAdminEditingCategoryId(category.id)
+    setAdminCategoryForm({ label: category.label, imageUrl: category.imageUrl || '' })
+    setAdminCategoryModalOpen(true)
+  }
+
+  const uploadCategoryImage = async (file) => {
+    const token = localStorage.getItem('lorefit_token')
+    if (!token || !file) return
+
+    setCategoryImageUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('image', file)
+      const response = await fetch(`${apiBaseUrl}/api/admin/upload-image`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.message || 'Upload failed')
+
+      setAdminCategoryForm((prev) => ({ ...prev, imageUrl: `${apiBaseUrl}${data.url}` }))
+    } catch (error) {
+      setAdminError('Не удалось загрузить изображение категории.')
+    } finally {
+      setCategoryImageUploading(false)
+    }
+  }
+
+  const submitAdminCategory = async (event) => {
+    event.preventDefault()
+
+    const token = localStorage.getItem('lorefit_token')
+    if (!token) {
+      setAdminError('Войдите как администратор.')
+      return
+    }
+
+    const label = adminCategoryForm.label.trim()
+    if (!label) {
+      setAdminError('Введите название категории.')
+      return
+    }
+
+    setAdminError('')
+    setAdminSuccess('')
+
+    try {
+      const endpoint = adminEditingCategoryId
+        ? `${apiBaseUrl}/api/admin/categories/${adminEditingCategoryId}`
+        : `${apiBaseUrl}/api/admin/categories`
+
+      const response = await fetch(endpoint, {
+        method: adminEditingCategoryId ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ label, imageUrl: adminCategoryForm.imageUrl.trim() }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to save category')
+      }
+
+      setAdminSuccess(adminEditingCategoryId ? 'Категория обновлена.' : 'Категория добавлена.')
+      resetAdminCategoryForm()
+      await refreshCategories()
+    } catch (error) {
+      setAdminError(error?.message ? `Не удалось сохранить категорию: ${error.message}` : 'Не удалось сохранить категорию.')
+    }
+  }
+
+  const deleteAdminCategory = async (categoryId) => {
+    const token = localStorage.getItem('lorefit_token')
+    if (!token) {
+      setAdminError('Войдите как администратор.')
+      return
+    }
+
+    setAdminError('')
+    setAdminSuccess('')
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/admin/categories/${categoryId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to delete category')
+      }
+
+      setAdminSuccess(
+        data.movedProducts > 0
+          ? `Категория удалена. Товары (${data.movedProducts}) перемещены в «Общее».`
+          : 'Категория удалена.'
+      )
+      setAdminDeleteCategoryId(null)
+      await refreshCategories()
+      await loadAdminData()
+      await refreshProducts()
+    } catch (error) {
+      setAdminError('Не удалось удалить категорию.')
+    }
+  }
+
   const deleteAdminOrder = async (orderId) => {
     const token = localStorage.getItem('lorefit_token')
     if (!token) {
@@ -1475,7 +1604,6 @@ function App() {
     const normalizedQuery = shopSearchQuery.trim().toLowerCase()
     const categoryFilteredProducts = products.filter((item) => {
       if (selectedShopCategory === 'all') return true
-      if (selectedShopCategory === 'discount') return item.useDiscount && item.discountPriceKzt > 0
       return item.category === selectedShopCategory
     })
     const sortedProducts = categoryFilteredProducts.filter((item) =>
@@ -1487,9 +1615,6 @@ function App() {
         <header className="hero shop-hero">
           <nav className="nav container shop-nav">
             <div className="nav-links">
-              <button className="brand-logo" type="button" onClick={() => setCurrentPage('shop')} aria-label="lore evolution — в магазин">
-                <img src="/logo.jpg" alt="lore evolution" />
-              </button>
               <button className="nav-link-button" type="button" onClick={() => setCurrentPage('shop')}>
                 Товары
               </button>
@@ -1522,6 +1647,10 @@ function App() {
                 </button>
               )}
             </div>
+            <button className="brand-logo" type="button" onClick={() => setCurrentPage('shop')} aria-label="lore evolution — в магазин">
+              <span className="brand-logo-line">lore</span>
+              <span className="brand-logo-line">evolution.</span>
+            </button>
             {authUser ? (
               <div className="auth-nav">
                 <span className="auth-user">{authUser.firstName}</span>
@@ -1561,32 +1690,22 @@ function App() {
               <section className="shop-card shop-card-wide">
                 <p className="badge">Магазин товаров</p>
                 <h1>Каталог</h1>
+                {categoriesLoading && categories.length === 0 && (
+                  <p className="booking-text">Загрузка категорий...</p>
+                )}
                 <div className="shop-categories-scroll">
-                  {shopCategories.filter((c) => c.key !== 'discount').map((cat) => (
+                  {categories.map((cat) => (
                     <button
                       key={cat.key}
                       className="shop-category-tile"
                       type="button"
                       onClick={() => { setSelectedShopCategory(cat.key); setShopSearchQuery('') }}
                     >
-                      <img className="shop-category-img" src={cat.img} alt={cat.label} loading="lazy" />
+                      <img className="shop-category-img" src={cat.imageUrl} alt={cat.label} loading="lazy" />
                       <span className="shop-category-label">{cat.label}</span>
                     </button>
                   ))}
                 </div>
-
-                <button
-                  className="discount-banner"
-                  type="button"
-                  onClick={() => { setSelectedShopCategory('discount'); setShopSearchQuery('') }}
-                >
-                  <div className="discount-banner-text">
-                    <span className="discount-banner-tag">🔥 Горячие предложения</span>
-                    <strong className="discount-banner-title">Скидки и акции</strong>
-                    <span className="discount-banner-sub">Товары по сниженным ценам</span>
-                  </div>
-                  <span className="discount-banner-arrow">→</span>
-                </button>
               </section>
             ) : (
               <section className="shop-card shop-catalog shop-card-wide">
@@ -1599,8 +1718,7 @@ function App() {
                     ← Назад
                   </button>
                   <h2 className="shop-cat-title">
-                    {shopCategories.find((c) => c.key === selectedShopCategory)?.emoji}{' '}
-                    {shopCategories.find((c) => c.key === selectedShopCategory)?.label}
+                    {categoryLabels[selectedShopCategory] || 'Категория'}
                   </h2>
                   <input
                     className="date-input shop-cat-search"
@@ -2035,6 +2153,10 @@ function App() {
               Номер заказа: <strong>#{lastOrder?.id}</strong>
             </p>
             <p className="booking-text">Сумма: {formatKzt(lastOrder?.totalAmountKzt || 0)}</p>
+            <p className="order-success-note">
+              <span className="order-success-note-icon" aria-hidden="true">📞</span>
+              Скоро с вами свяжется администратор
+            </p>
             <button
               className="primary"
               type="button"
@@ -2057,9 +2179,6 @@ function App() {
         <header className="hero shop-hero">
           <nav className="nav container shop-nav">
             <div className="nav-links">
-              <button className="brand-logo" type="button" onClick={() => setCurrentPage('shop')} aria-label="lore evolution — в магазин">
-                <img src="/logo.jpg" alt="lore evolution" />
-              </button>
               <button className="nav-link-button" type="button" onClick={() => setCurrentPage('shop')}>
                 Товары
               </button>
@@ -2075,6 +2194,10 @@ function App() {
                 {newOrderNotification && <span className="nav-notify-dot" />}
               </button>
             </div>
+            <button className="brand-logo" type="button" onClick={() => setCurrentPage('shop')} aria-label="lore evolution — в магазин">
+              <span className="brand-logo-line">lore</span>
+              <span className="brand-logo-line">evolution.</span>
+            </button>
             {authUser ? (
               <div className="auth-nav">
                 <span className="auth-user">{authUser.firstName}</span>
@@ -2394,6 +2517,13 @@ function App() {
                       onClick={() => setAdminTab('warehouse')}
                     >
                       Склад
+                    </button>
+                    <button
+                      className={adminTab === 'categories' ? 'slot active' : 'slot'}
+                      type="button"
+                      onClick={() => setAdminTab('categories')}
+                    >
+                      Категории
                     </button>
                   </div>
                   <button className="secondary" type="button" onClick={loadAdminData}>
@@ -2873,6 +3003,53 @@ function App() {
                   </div>
                 )}
 
+                {adminTab === 'categories' && (
+                  <div className="admin-main admin-main-wide" style={{ marginTop: '1rem' }}>
+                    <div className="admin-page-head" style={{ marginTop: 0 }}>
+                      <h2 className="account-subtitle" style={{ marginTop: 0 }}>Категории каталога</h2>
+                      <button
+                        className="primary"
+                        type="button"
+                        onClick={() => {
+                          resetAdminCategoryForm()
+                          setAdminCategoryModalOpen(true)
+                        }}
+                      >
+                        Добавить категорию
+                      </button>
+                    </div>
+
+                    <div className="admin-category-grid">
+                      {categories.map((category) => (
+                        <article className="admin-category-card" key={category.key}>
+                          {category.imageUrl
+                            ? <img className="admin-category-card-img" src={category.imageUrl} alt={category.label} />
+                            : <div className="admin-category-card-img admin-category-card-img--empty" />
+                          }
+                          <div className="admin-category-card-body">
+                            <h3>{category.label}</h3>
+                            <div className="admin-actions">
+                              <button className="secondary" type="button" onClick={() => editAdminCategory(category)}>
+                                Редактировать
+                              </button>
+                              <button
+                                className="secondary"
+                                type="button"
+                                onClick={() => setAdminDeleteCategoryId(category.id)}
+                              >
+                                Удалить
+                              </button>
+                            </div>
+                          </div>
+                        </article>
+                      ))}
+                      {!categoriesLoading && categories.length === 0 && (
+                        <p className="booking-text">Категорий пока нет.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {adminProductModalOpen && (
                   <div className="admin-modal-overlay" role="dialog" aria-modal="true">
                     <div className="admin-modal-card">
@@ -3156,6 +3333,108 @@ function App() {
                           </button>
                         </div>
                       </form>
+                    </div>
+                  </div>
+                )}
+
+                {adminCategoryModalOpen && (
+                  <div className="admin-modal-overlay" role="dialog" aria-modal="true">
+                    <div className="admin-modal-card small">
+                      <h2>{adminEditingCategoryId ? 'Редактировать категорию' : 'Новая категория'}</h2>
+                      <form
+                        className="auth-form admin-form"
+                        onSubmit={submitAdminCategory}
+                      >
+                        <label className="field-label" htmlFor="admin-category-label">
+                          Название
+                        </label>
+                        <input
+                          className="date-input"
+                          id="admin-category-label"
+                          type="text"
+                          value={adminCategoryForm.label}
+                          onChange={(event) => setAdminCategoryForm((prev) => ({ ...prev, label: event.target.value }))}
+                          required
+                        />
+
+                        <label className="field-label">Фото категории</label>
+
+                        {adminCategoryForm.imageUrl && (
+                          <div className="admin-image-previews">
+                            <div className="admin-image-preview-wrap">
+                              <img className="admin-image-preview" src={adminCategoryForm.imageUrl} alt="Превью категории" />
+                              <button
+                                className="admin-image-remove"
+                                type="button"
+                                title="Удалить"
+                                onClick={() => setAdminCategoryForm((prev) => ({ ...prev, imageUrl: '' }))}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="admin-image-upload-row">
+                          <input
+                            className="date-input"
+                            type="text"
+                            placeholder="Вставьте URL или загрузите файл"
+                            value={adminCategoryForm.imageUrl}
+                            onChange={(event) => setAdminCategoryForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
+                          />
+                          <input
+                            id="admin-category-image-file"
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            onChange={(e) => {
+                              if (e.target.files?.[0]) {
+                                uploadCategoryImage(e.target.files[0])
+                                e.target.value = ''
+                              }
+                            }}
+                          />
+                          <button
+                            className="secondary"
+                            type="button"
+                            disabled={categoryImageUploading}
+                            onClick={() => document.getElementById('admin-category-image-file').click()}
+                          >
+                            {categoryImageUploading ? 'Загрузка…' : 'С устройства'}
+                          </button>
+                        </div>
+
+                        {adminError && <p className="auth-error" style={{ marginTop: '0.75rem' }}>{adminError}</p>}
+
+                        <div className="admin-actions">
+                          <button className="primary" type="submit">
+                            {adminEditingCategoryId ? 'Сохранить изменения' : 'Создать категорию'}
+                          </button>
+                          <button className="secondary" type="button" onClick={resetAdminCategoryForm}>
+                            Отмена
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
+
+                {adminDeleteCategoryId !== null && (
+                  <div className="admin-modal-overlay" role="dialog" aria-modal="true">
+                    <div className="admin-modal-card small">
+                      <h2>Подтверждение удаления</h2>
+                      <p className="booking-text">
+                        Удалить категорию? Товары в ней будут перемещены в «Общее».
+                      </p>
+                      <div className="admin-actions">
+                        <button className="primary" type="button" onClick={() => deleteAdminCategory(adminDeleteCategoryId)}>
+                          Да, удалить
+                        </button>
+                        <button className="secondary" type="button" onClick={() => setAdminDeleteCategoryId(null)}>
+                          Отмена
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}

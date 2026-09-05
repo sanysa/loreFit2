@@ -138,16 +138,59 @@ function mapProductRow(row) {
   };
 }
 
-const ALLOWED_CATEGORIES = [
-  "cardio", "strength", "yoga", "running", "outdoor",
-  "clothing", "footwear", "nutrition", "accessories",
-  "protection", "general",
-];
 const ALLOWED_UNIT_TYPES = ["piece", "kg", "ml", "g", "l"];
+
+async function getCategoryKeys() {
+  const result = await pool.query("SELECT key FROM categories");
+  return result.rows.map((row) => row.key);
+}
+
+function mapCategoryRow(row) {
+  return {
+    id: row.id,
+    key: row.key,
+    label: row.label,
+    imageUrl: row.image_url || "",
+  };
+}
+
+const CYRILLIC_TO_LATIN = {
+  а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ё: "e", ж: "zh", з: "z",
+  и: "i", й: "y", к: "k", л: "l", м: "m", н: "n", о: "o", п: "p", р: "r",
+  с: "s", т: "t", у: "u", ф: "f", х: "h", ц: "ts", ч: "ch", ш: "sh", щ: "sch",
+  ъ: "", ы: "y", ь: "", э: "e", ю: "yu", я: "ya",
+};
+
+function slugify(text) {
+  const transliterated = String(text || "")
+    .toLowerCase()
+    .split("")
+    .map((ch) => (ch in CYRILLIC_TO_LATIN ? CYRILLIC_TO_LATIN[ch] : ch))
+    .join("");
+
+  return transliterated
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 40);
+}
+
+async function generateUniqueCategoryKey(label) {
+  const base = slugify(label) || `category_${Date.now().toString(36)}`;
+  let candidate = base;
+  let suffix = 2;
+
+  while (true) {
+    const existing = await pool.query("SELECT 1 FROM categories WHERE key = $1", [candidate]);
+    if (existing.rows.length === 0) {
+      return candidate;
+    }
+    candidate = `${base}_${suffix}`;
+    suffix += 1;
+  }
+}
 
 function normalizeProductPayload(body) {
   const category = String(body.category || "").trim();
-  const normalizedCategory = ALLOWED_CATEGORIES.includes(category) ? category : "general";
 
   const imageUrls = Array.isArray(body.imageUrls)
     ? body.imageUrls.map((item) => String(item).trim()).filter(Boolean)
@@ -155,7 +198,7 @@ function normalizeProductPayload(body) {
 
   return {
     name: String(body.name || "").trim(),
-    category: normalizedCategory,
+    category,
     description: String(body.description || "").trim(),
     priceKzt: Number(body.priceKzt),
     discountPriceKzt: Number(body.discountPriceKzt || 0),
@@ -246,6 +289,19 @@ app.get("/api/products/:id", async (req, res) => {
   }
 });
 
+app.get("/api/categories", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT id, key, label, image_url FROM categories WHERE is_hidden = false ORDER BY sort_order ASC, id ASC"
+    );
+
+    return res.json({ categories: result.rows.map(mapCategoryRow) });
+  } catch (error) {
+    console.error("Categories fetch error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 app.get("/api/admin/products", requireAdmin, async (req, res) => {
   try {
     const result = await pool.query(
@@ -268,11 +324,13 @@ app.get("/api/admin/products", requireAdmin, async (req, res) => {
 
 app.post("/api/admin/products", requireAdmin, async (req, res) => {
   const payload = normalizeProductPayload(req.body);
+  const categoryKeys = await getCategoryKeys();
+  if (!categoryKeys.includes(payload.category)) payload.category = "general";
 
   if (
     !payload.name ||
     !payload.description ||
-    !ALLOWED_CATEGORIES.includes(payload.category) ||
+    !categoryKeys.includes(payload.category) ||
     !ALLOWED_UNIT_TYPES.includes(payload.unitType) ||
     !Number.isFinite(payload.priceKzt) ||
     payload.priceKzt <= 0 ||
@@ -322,11 +380,13 @@ app.put("/api/admin/products/:id", requireAdmin, async (req, res) => {
   }
 
   const payload = normalizeProductPayload(req.body);
+  const categoryKeys = await getCategoryKeys();
+  if (!categoryKeys.includes(payload.category)) payload.category = "general";
 
   if (
     !payload.name ||
     !payload.description ||
-    !ALLOWED_CATEGORIES.includes(payload.category) ||
+    !categoryKeys.includes(payload.category) ||
     !ALLOWED_UNIT_TYPES.includes(payload.unitType) ||
     !Number.isFinite(payload.priceKzt) ||
     payload.priceKzt <= 0 ||
@@ -422,6 +482,121 @@ app.delete("/api/admin/products/:id", requireAdmin, async (req, res) => {
   } catch (error) {
     await client.query("ROLLBACK");
     console.error("Admin product delete error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  } finally {
+    client.release();
+  }
+});
+
+app.get("/api/admin/categories", requireAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT id, key, label, image_url FROM categories WHERE is_hidden = false ORDER BY sort_order ASC, id ASC"
+    );
+
+    return res.json({ categories: result.rows.map(mapCategoryRow) });
+  } catch (error) {
+    console.error("Admin categories fetch error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+app.post("/api/admin/categories", requireAdmin, async (req, res) => {
+  const label = String(req.body.label || "").trim();
+  const imageUrl = String(req.body.imageUrl || "").trim();
+
+  if (!label) {
+    return res.status(400).json({ message: "Category name is required" });
+  }
+
+  try {
+    const nextSortOrder = await pool.query(
+      "SELECT COALESCE(MAX(sort_order), 0) + 1 AS next FROM categories WHERE is_hidden = false"
+    );
+    const key = await generateUniqueCategoryKey(label);
+
+    const result = await pool.query(
+      `INSERT INTO categories (key, label, image_url, sort_order)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, key, label, image_url`,
+      [key, label, imageUrl, nextSortOrder.rows[0].next]
+    );
+
+    return res.status(201).json({ category: mapCategoryRow(result.rows[0]) });
+  } catch (error) {
+    console.error("Admin category create error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+app.put("/api/admin/categories/:id", requireAdmin, async (req, res) => {
+  const categoryId = Number(req.params.id);
+  if (!Number.isInteger(categoryId) || categoryId <= 0) {
+    return res.status(400).json({ message: "Invalid category id" });
+  }
+
+  const label = String(req.body.label || "").trim();
+  const imageUrl = String(req.body.imageUrl || "").trim();
+
+  if (!label) {
+    return res.status(400).json({ message: "Category name is required" });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE categories SET label = $1, image_url = $2
+       WHERE id = $3 AND is_hidden = false
+       RETURNING id, key, label, image_url`,
+      [label, imageUrl, categoryId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    return res.json({ category: mapCategoryRow(result.rows[0]) });
+  } catch (error) {
+    console.error("Admin category update error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+app.delete("/api/admin/categories/:id", requireAdmin, async (req, res) => {
+  const categoryId = Number(req.params.id);
+  if (!Number.isInteger(categoryId) || categoryId <= 0) {
+    return res.status(400).json({ message: "Invalid category id" });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const found = await client.query(
+      "SELECT key FROM categories WHERE id = $1 AND is_hidden = false",
+      [categoryId]
+    );
+    if (found.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    const { key } = found.rows[0];
+    if (key === "general") {
+      await client.query("ROLLBACK");
+      return res.status(400).json({ message: "Эту категорию нельзя удалить" });
+    }
+
+    const moved = await client.query(
+      "UPDATE products SET category = 'general' WHERE category = $1",
+      [key]
+    );
+    await client.query("DELETE FROM categories WHERE id = $1", [categoryId]);
+
+    await client.query("COMMIT");
+    return res.json({ message: "Category deleted", movedProducts: moved.rowCount });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("Admin category delete error:", error);
     return res.status(500).json({ message: "Internal server error" });
   } finally {
     client.release();
